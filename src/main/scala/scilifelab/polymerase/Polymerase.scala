@@ -18,10 +18,10 @@ case object DNACodec {
         .format("%8s", Integer.toBinaryString(data & 0xFF))
         .replace(' ', '0')
     binaryStringData
-      .map(_.toChar)
+      .toCharArray()
       .grouped(2)
       .map { bits =>
-        encodingTable(bits)
+        encodingTable(bits.mkString)
       }
       .toIterable
   }
@@ -43,14 +43,16 @@ case object DNACodec {
 object Polymerase extends App {
 
   val s = "Hello World!"
-  println(f"Encoding data: $s")
-  println(s"Assumed size of data: ${s.length() * 8} bits")
+  println(s"Encoding data: $s")
+  println(
+    s"Approx. size of data: ${s.length * 8} bits"
+  )
 
   val encoded = DNACodec.encode(s.toStream.map(_.toByte)).toList
-  println(encoded.mkString)
-  println(s"Assumed size of endcoded data: ${encoded.length * 8} bases")
+  println(s"Encoded as DNA: ${encoded.mkString}")
+  println(s"Assumed size of DNA encoded data: ${encoded.length} bases")
 
   val decoded = DNACodec.decode(encoded)
-  println(decoded.map(_.toChar).mkString)
+  println(s"Decoded data: ${decoded.map(_.toChar).mkString}")
 
 }
