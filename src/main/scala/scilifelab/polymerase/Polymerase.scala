@@ -19,110 +19,38 @@ case object DNACodec {
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
 
-  def encode(b: Array[Byte]): Array[Byte] = {
-    (for {
-      byte <- b
-      twobitsString <- byte.toBinaryString.grouped(2)
-      twoBits <- encodingTable.get(twobitsString)
-    } yield {
-      twoBits
-    }).map(_.toByte)
+  def encode(data: Iterable[Byte]): Iterable[Char] = {
+    data.map(encode(_)).flatten
   }
 
-  def decode(data: Char): Byte = {
-    val binaryString = decodingTable(data)
-    println(binaryString)
-    val nbr = JavaShort.parseShort(binaryString, 2)
-    println(nbr)
-    nbr.toByte
+  def encode(data: Byte): Iterable[Char] = {
+    data.toBinaryString
+      .map(_.toChar)
+      .grouped(2)
+      .map(bits => encodingTable(bits))
+      .toIterable
   }
-}
 
-case class DNAOutputStream(outputStream: OutputStream)
-    extends FilterOutputStream(outputStream) {
-
-  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-    outputStream.write(DNACodec.encode(b), off, len)
+  def decode(data: Iterable[Char]): Iterable[Byte] = {
+    data.grouped(4)
+    ???
   }
 }
 
-case class DNAInputStream(inputStream: InputStream)
-    extends FilterInputStream(inputStream) {
-  override def read(
-      data: Array[Byte],
-      originalOff: Int,
-      len: Int
-  ): Int = {
-
-    // data needs to be manipulated, and the return of the function indicates how many
-    // bytes were actually read...
-
-    var off = originalOff
-
-    println("Using specific read...")
-
-    if (off < 0 || len < 0 || off + len > data.length) {
-      throw new ArrayIndexOutOfBoundsException()
-    }
-
-    if (len == 0) {
-      return 0
-    }
-
-    Range(0, len)
-      .map { _ =>
-        read()
-      }
-      .filter { ch =>
-        ch >= 0
-      }
-      .foreach { ch =>
-        off += 1
-        data(off) = DNACodec.decode(ch.toChar)
-        println(data.mkString(","))
-      }
-
-    if (off == originalOff) {
-      -1
-    } else {
-      off - originalOff
-    }
-  }
-}
+//def decode(data: Char): Byte = {
+//  val binaryString = decodingTable(data)
+//  println(binaryString)
+//  val nbr = JavaShort.parseShort(binaryString, 2)
+//  println(nbr)
+//  nbr.toByte
+//}
 
 object Polymerase extends App {
 
   val s = "Hello World!"
   println(f"String to write: $s")
 
-  // Write the data
-  println("Write data")
-  val fileOutputStream = new FileOutputStream(new File("foo"))
-  val dnaOutputStream = new DNAOutputStream(fileOutputStream)
-  val writer = new PrintWriter(dnaOutputStream)
+  val encoded = DNACodec.encode(s.toStream.map(_.toByte))
+  println(encoded)
 
-  writer.write(s)
-  writer.flush()
-  fileOutputStream.close()
-  dnaOutputStream.close()
-
-  println("Read data back")
-  val fileInputStream = new FileInputStream(new File("foo"))
-  def dnaInputStream = {
-    if (true)
-      new DNAInputStream(fileInputStream)
-    else
-      fileInputStream
-  }
-
-  println("Data: ")
-  println("----------------------")
-  for { line <- Source.fromInputStream(dnaInputStream).getLines } {
-    println(f"$line\t${line.length()}")
-  }
-  println("----------------------")
-
-  println("Closing streams")
-  fileInputStream.close()
-  dnaInputStream.close()
 }
