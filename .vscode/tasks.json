@@ -8,6 +8,12 @@
             "type": "shell",
             "command": "sbt run",
             "problemMatcher": []
+        },
+        {
+            "label": "sbt run encoder",
+            "type": "shell",
+            "command": "sbt \"runMain scilifelab.polymerase.PolymeraseEncoder\"",
+            "problemMatcher": []
         }
     ]
 }

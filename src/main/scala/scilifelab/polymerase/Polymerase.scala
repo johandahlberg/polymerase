@@ -1,6 +1,10 @@
 package scilifelab.polymerase
 
 import java.lang.{Short => JavaShort}
+import scala.io.Source
+import java.io.File
+import java.io.EOFException
+import scala.io.StdIn
 
 case object DNACodec {
 
@@ -40,19 +44,17 @@ case object DNACodec {
   }
 }
 
-object Polymerase extends App {
+object PolymeraseEncoder extends App {
+  var line = ""
+  while ({ line = StdIn.readLine(); line != null }) {
+    print(DNACodec.encode(line.toArray.map(_.toByte)).mkString)
+  }
+}
 
-  val s = "Hello World!"
-  println(s"Encoding data: $s")
-  println(
-    s"Approx. size of data: ${s.length * 8} bits"
-  )
-
-  val encoded = DNACodec.encode(s.toStream.map(_.toByte)).toList
-  println(s"Encoded as DNA: ${encoded.mkString}")
-  println(s"Assumed size of DNA encoded data: ${encoded.length} bases")
-
-  val decoded = DNACodec.decode(encoded)
-  println(s"Decoded data: ${decoded.map(_.toChar).mkString}")
+object PolymeraseDecoded extends App {
+  var line = ""
+  while ({ line = StdIn.readLine(); line != null }) {
+    print(DNACodec.decode(line).map(_.toChar).mkString)
+  }
 
 }

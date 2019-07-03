@@ -1,3 +1,5 @@
+enablePlugins(JavaAppPackaging)
+
 import Dependencies._
 
 ThisBuild / scalaVersion := "2.12.8"
