@@ -1,17 +1,6 @@
 package scilifelab.polymerase
-import java.io.FilterOutputStream
-import java.io.OutputStream
-import java.io.PrintWriter
-import java.io.FileOutputStream
-import java.io.FileInputStream
-import scala.io.Source
-import java.io.File
-import java.io.InputStream
-import java.io.FilterInputStream
-import java.math.BigInteger
 
 import java.lang.{Short => JavaShort}
-import java.nio.ByteBuffer
 
 case object DNACodec {
 
@@ -24,33 +13,44 @@ case object DNACodec {
   }
 
   def encode(data: Byte): Iterable[Char] = {
-    data.toBinaryString
+    val binaryStringData =
+      String
+        .format("%8s", Integer.toBinaryString(data & 0xFF))
+        .replace(' ', '0')
+    binaryStringData
       .map(_.toChar)
       .grouped(2)
-      .map(bits => encodingTable(bits))
+      .map { bits =>
+        encodingTable(bits)
+      }
       .toIterable
   }
 
   def decode(data: Iterable[Char]): Iterable[Byte] = {
-    data.grouped(4)
-    ???
+    data
+      .grouped(4)
+      .map { groupOfFourBases =>
+        val byteAsBinaryString = groupOfFourBases.map { base =>
+          decodingTable(base)
+        }.mkString
+        val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
+        resultingByte
+      }
+      .toIterable
   }
 }
-
-//def decode(data: Char): Byte = {
-//  val binaryString = decodingTable(data)
-//  println(binaryString)
-//  val nbr = JavaShort.parseShort(binaryString, 2)
-//  println(nbr)
-//  nbr.toByte
-//}
 
 object Polymerase extends App {
 
   val s = "Hello World!"
-  println(f"String to write: $s")
+  println(f"Encoding data: $s")
+  println(s"Assumed size of data: ${s.length() * 8} bits")
 
-  val encoded = DNACodec.encode(s.toStream.map(_.toByte))
-  println(encoded)
+  val encoded = DNACodec.encode(s.toStream.map(_.toByte)).toList
+  println(encoded.mkString)
+  println(s"Assumed size of endcoded data: ${encoded.length * 8} bases")
+
+  val decoded = DNACodec.decode(encoded)
+  println(decoded.map(_.toChar).mkString)
 
 }
