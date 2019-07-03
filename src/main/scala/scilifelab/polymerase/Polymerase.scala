@@ -29,8 +29,12 @@ case object DNACodec {
     }).map(_.toByte)
   }
 
-  def decode(data: Array[Byte]): Int = {
-    ???
+  def decode(data: Char): Byte = {
+    val binaryString = decodingTable(data)
+    println(binaryString)
+    val nbr = JavaShort.parseShort(binaryString, 2)
+    println(nbr)
+    nbr.toByte
   }
 }
 
@@ -47,14 +51,13 @@ case class DNAInputStream(inputStream: InputStream)
   override def read(
       data: Array[Byte],
       originalOff: Int,
-      originalLen: Int
+      len: Int
   ): Int = {
 
     // data needs to be manipulated, and the return of the function indicates how many
     // bytes were actually read...
 
     var off = originalOff
-    var len = originalLen
 
     println("Using specific read...")
 
@@ -75,7 +78,8 @@ case class DNAInputStream(inputStream: InputStream)
       }
       .foreach { ch =>
         off += 1
-        data(off) = ch.toByte
+        data(off) = DNACodec.decode(ch.toChar)
+        println(data.mkString(","))
       }
 
     if (off == originalOff) {
