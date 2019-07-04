@@ -10,7 +10,7 @@ object EncoderDecoderSpecification
 
   property("Encoding and decoding a Byte should return original Byte") =
     forAll { a: Byte =>
-      a == DNACodec.decode(DNACodec.encode(a)).next()
+      a == DNACodec.decode(DNACodec.encode(a).toIterator).next()
     }
 
   property(

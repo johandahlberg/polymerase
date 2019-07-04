@@ -25,10 +25,11 @@ case object DNACodec {
   private val decodingTable: Map[Nucleotide, String] =
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
+  val cache = new collection.mutable.WeakHashMap[Byte, Seq[Nucleotide]]
 
   private def groupString(str: String, len: Int): Seq[String] = {
-    (for (p <- 0 until str.length() by len)
-      yield str.substring(p, p + len))
+    for (p <- 0 until str.length() by len)
+      yield str.substring(p, p + len)
   }
 
   def encode(data: String): Iterator[Nucleotide] = {
@@ -39,18 +40,24 @@ case object DNACodec {
     data.map(encode(_)).flatten
   }
 
-  def encode(data: Byte): Iterator[Nucleotide] = {
-    val binaryStringData =
-      String
-        .format("%8s", Integer.toBinaryString(data & 0xFF))
-        .replace(' ', '0')
-    groupString(binaryStringData, 2).map { bits =>
-      encodingTable.getOrElse(bits, {
-        throw new NoSuchElementException(
-          f"There was a problem encoding bit, bits: ${bits.mkString}"
-        )
-      })
-    }.toIterator
+  def encode(data: Byte): Seq[Nucleotide] = {
+    cache.getOrElse(
+      data, {
+        val binaryStringData =
+          String
+            .format("%8s", Integer.toBinaryString(data & 0xFF))
+            .replace(' ', '0')
+        val nuc = groupString(binaryStringData, 2).map { bits =>
+          encodingTable.getOrElse(bits, {
+            throw new NoSuchElementException(
+              f"There was a problem encoding bit, bits: ${bits.mkString}"
+            )
+          })
+        }
+        cache.update(data, nuc)
+        nuc
+      }
+    )
   }
 
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
