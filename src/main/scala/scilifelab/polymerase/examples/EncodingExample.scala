@@ -14,7 +14,7 @@ object EncodingExample extends App {
     s"Approx. size of data: ${s.length * 8} bits"
   )
 
-  val encoded = DNACodec.encode(s.toStream.map(_.toByte)).toList
+  val encoded = DNACodec.encode(s.map(_.toByte).iterator)
   println(s"Encoded as DNA: ${encoded.mkString}")
   println(s"Assumed size of DNA encoded data: ${encoded.length} bases")
 

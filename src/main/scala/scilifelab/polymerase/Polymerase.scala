@@ -26,21 +26,20 @@ case object DNACodec {
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
 
-  def encode(data: String): Iterable[Nucleotide] = {
-    encode(data.getBytes(charset))
+  def encode(data: String): Iterator[Nucleotide] = {
+    encode(data.getBytes(charset).toIterator)
   }
 
-  def encode(data: Iterable[Byte]): Iterable[Nucleotide] = {
+  def encode(data: Iterator[Byte]): Iterator[Nucleotide] = {
     data.map(encode(_)).flatten
   }
 
-  def encode(data: Byte): Iterable[Nucleotide] = {
+  def encode(data: Byte): Iterator[Nucleotide] = {
     val binaryStringData =
       String
         .format("%8s", Integer.toBinaryString(data & 0xFF))
         .replace(' ', '0')
     binaryStringData
-      .toCharArray()
       .grouped(2)
       .map { bits =>
         encodingTable.getOrElse(bits.mkString, {
@@ -49,10 +48,9 @@ case object DNACodec {
           )
         })
       }
-      .toIterable
   }
 
-  def decode(data: Iterable[Nucleotide]): Iterable[Byte] = {
+  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
     data
       .grouped(4)
       .map { groupOfFourBases =>
@@ -66,10 +64,9 @@ case object DNACodec {
         val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
         resultingByte
       }
-      .toIterable
   }
 
-  def decodeString(data: Iterable[Nucleotide]): String = {
+  def decodeString(data: Iterator[Nucleotide]): String = {
     val byteDecoded = decode(data)
     charset.decode(ByteBuffer.wrap(byteDecoded.toArray)).toString()
   }
@@ -95,7 +92,7 @@ object PolymeraseEncoder extends App {
 object PolymeraseDecoded extends App {
   val input = new BufferedInputStream(System.in)
   val output = new DataOutputStream(System.out)
-  for { byte <- DNACodec.decode(Source.fromInputStream(input).toIterable) } {
+  for { byte <- DNACodec.decode(Source.fromInputStream(input)) } {
     output.write(byte)
   }
   input.close()

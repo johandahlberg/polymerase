@@ -10,13 +10,13 @@ object EncoderDecoderSpecification
 
   property("Encoding and decoding a Byte should return original Byte") =
     forAll { a: Byte =>
-      List(a).toIterable == DNACodec.decode(DNACodec.encode(a))
+      a == DNACodec.decode(DNACodec.encode(a)).next()
     }
 
   property(
     "Encoding and decoding a Array[Byte] should return original Array[Byte]"
   ) = forAll { a: List[Byte] =>
-    a == DNACodec.decode(DNACodec.encode(a))
+    a == DNACodec.decode(DNACodec.encode(a.iterator)).toList
   }
 
   property("Encoding and decodig a String should return the original String") =
