@@ -7,6 +7,15 @@ import java.io.EOFException
 import java.nio.charset.Charset
 import scala.io.StdIn
 import java.nio.ByteBuffer
+import java.nio.file.Files
+import java.io.BufferedOutputStream
+import java.io.BufferedInputStream
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.io.PrintStream
+import java.io.DataOutputStream
+import java.io.DataInputStream
+import java.io.PrintWriter
 
 case object DNACodec {
 
@@ -34,7 +43,13 @@ case object DNACodec {
       .toCharArray()
       .grouped(2)
       .map { bits =>
-        encodingTable(bits.mkString)
+        try {
+          encodingTable(bits.mkString)
+        } catch {
+          case e: NoSuchElementException =>
+            println(f"There was a problem encoding bit, bits: ${bits.mkString}")
+            throw e
+        }
       }
       .toIterable
   }
@@ -44,7 +59,13 @@ case object DNACodec {
       .grouped(4)
       .map { groupOfFourBases =>
         val byteAsBinaryString = groupOfFourBases.map { base =>
-          decodingTable(base)
+          try {
+            decodingTable(base)
+          } catch {
+            case e: NoSuchElementException =>
+              println(f"There was a problem decoding base: ${base}")
+              throw e
+          }
         }.mkString
         val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
         resultingByte
@@ -59,16 +80,30 @@ case object DNACodec {
 }
 
 object PolymeraseEncoder extends App {
-  var line = ""
-  while ({ line = StdIn.readLine(); line != null }) {
-    print(DNACodec.encode(line.toArray.map(_.toByte)).mkString)
+
+  val input = new DataInputStream(new BufferedInputStream(System.in))
+  val output = new PrintWriter(System.out)
+  try {
+    while (true) {
+      val data = input.readByte()
+      output.write(DNACodec.encode(data).toArray)
+    }
+  } catch {
+    case e: EOFException =>
+  } finally {
+    input.close()
+    output.close()
   }
+
 }
 
 object PolymeraseDecoded extends App {
-  var line = ""
-  while ({ line = StdIn.readLine(); line != null }) {
-    print(DNACodec.decode(line).map(_.toChar).mkString)
+  val input = new BufferedInputStream(System.in)
+  val output = new DataOutputStream(System.out)
+  for { byte <- DNACodec.decode(Source.fromInputStream(input).toIterable) } {
+    output.write(byte)
   }
+  input.close()
+  output.close()
 
 }
