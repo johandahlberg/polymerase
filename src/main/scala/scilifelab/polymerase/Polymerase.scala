@@ -13,7 +13,12 @@ case object DNACodec {
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
 
   def encode(data: Iterable[Byte]): Iterable[Char] = {
-    data.map(encode(_)).flatten
+    if (data.isEmpty) {
+      println("Encoding data was empty")
+      Iterable.empty
+    } else {
+      data.map(encode(_)).flatten
+    }
   }
 
   def encode(data: Byte): Iterable[Char] = {
@@ -31,16 +36,21 @@ case object DNACodec {
   }
 
   def decode(data: Iterable[Char]): Iterable[Byte] = {
-    data
-      .grouped(4)
-      .map { groupOfFourBases =>
-        val byteAsBinaryString = groupOfFourBases.map { base =>
-          decodingTable(base)
-        }.mkString
-        val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
-        resultingByte
-      }
-      .toIterable
+    if (data.isEmpty) {
+      println("Decoding data was empty")
+      Iterable.empty
+    } else {
+      data
+        .grouped(4)
+        .map { groupOfFourBases =>
+          val byteAsBinaryString = groupOfFourBases.map { base =>
+            decodingTable(base)
+          }.mkString
+          val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
+          resultingByte
+        }
+        .toIterable
+    }
   }
 }
 
