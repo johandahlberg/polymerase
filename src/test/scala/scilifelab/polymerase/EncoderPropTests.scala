@@ -13,11 +13,21 @@ object EncoderDecoderSpecification
       List(a).toIterable == DNACodec.decode(DNACodec.encode(a))
     }
 
+  property(
+    "Encoding and decoding a Array[Byte] should return original Array[Byte]"
+  ) = forAll { a: List[Byte] =>
+    a == DNACodec.decode(DNACodec.encode(a))
+  }
+
+  property("Encoding and decodig a String should return the original String") =
+    forAll { a: String =>
+      a == DNACodec.decodeString(DNACodec.encode(a))
+    }
+
   property("Encoding a Byte should use half as many bases as bits") = forAll {
     a: Byte =>
       DNACodec.encode(a).toList.length == 4
   }
-
 //  property("encoding and then decoding should return the same data") = forAll {
 //    a: String =>
 //      println(f"Empty String? ${a.isEmpty()}")

@@ -4,24 +4,28 @@ import java.lang.{Short => JavaShort}
 import scala.io.Source
 import java.io.File
 import java.io.EOFException
+import java.nio.charset.Charset
 import scala.io.StdIn
+import java.nio.ByteBuffer
 
 case object DNACodec {
 
-  private val decodingTable =
+  val charset = Charset.forName("UTF-8")
+  type Nucleotide = Char
+
+  private val decodingTable: Map[Nucleotide, String] =
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
 
-  def encode(data: Iterable[Byte]): Iterable[Char] = {
-    if (data.isEmpty) {
-      println("Encoding data was empty")
-      Iterable.empty
-    } else {
-      data.map(encode(_)).flatten
-    }
+  def encode(data: String): Iterable[Nucleotide] = {
+    encode(data.getBytes(charset))
   }
 
-  def encode(data: Byte): Iterable[Char] = {
+  def encode(data: Iterable[Byte]): Iterable[Nucleotide] = {
+    data.map(encode(_)).flatten
+  }
+
+  def encode(data: Byte): Iterable[Nucleotide] = {
     val binaryStringData =
       String
         .format("%8s", Integer.toBinaryString(data & 0xFF))
@@ -35,22 +39,22 @@ case object DNACodec {
       .toIterable
   }
 
-  def decode(data: Iterable[Char]): Iterable[Byte] = {
-    if (data.isEmpty) {
-      println("Decoding data was empty")
-      Iterable.empty
-    } else {
-      data
-        .grouped(4)
-        .map { groupOfFourBases =>
-          val byteAsBinaryString = groupOfFourBases.map { base =>
-            decodingTable(base)
-          }.mkString
-          val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
-          resultingByte
-        }
-        .toIterable
-    }
+  def decode(data: Iterable[Nucleotide]): Iterable[Byte] = {
+    data
+      .grouped(4)
+      .map { groupOfFourBases =>
+        val byteAsBinaryString = groupOfFourBases.map { base =>
+          decodingTable(base)
+        }.mkString
+        val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
+        resultingByte
+      }
+      .toIterable
+  }
+
+  def decodeString(data: Iterable[Nucleotide]): String = {
+    val byteDecoded = decode(data)
+    charset.decode(ByteBuffer.wrap(byteDecoded.toArray)).toString()
   }
 }
 
