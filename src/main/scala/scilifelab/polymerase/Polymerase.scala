@@ -26,6 +26,11 @@ case object DNACodec {
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
 
+  private def groupString(str: String, len: Int): Seq[String] = {
+    (for (p <- 0 until str.length() by len)
+      yield str.substring(p, p + len))
+  }
+
   def encode(data: String): Iterator[Nucleotide] = {
     encode(data.getBytes(charset).toIterator)
   }
@@ -39,15 +44,13 @@ case object DNACodec {
       String
         .format("%8s", Integer.toBinaryString(data & 0xFF))
         .replace(' ', '0')
-    binaryStringData
-      .grouped(2)
-      .map { bits =>
-        encodingTable.getOrElse(bits.mkString, {
-          throw new NoSuchElementException(
-            f"There was a problem encoding bit, bits: ${bits.mkString}"
-          )
-        })
-      }
+    groupString(binaryStringData, 2).map { bits =>
+      encodingTable.getOrElse(bits, {
+        throw new NoSuchElementException(
+          f"There was a problem encoding bit, bits: ${bits.mkString}"
+        )
+      })
+    }.toIterator
   }
 
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
