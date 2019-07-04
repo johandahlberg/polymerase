@@ -43,13 +43,11 @@ case object DNACodec {
       .toCharArray()
       .grouped(2)
       .map { bits =>
-        try {
-          encodingTable(bits.mkString)
-        } catch {
-          case e: NoSuchElementException =>
-            println(f"There was a problem encoding bit, bits: ${bits.mkString}")
-            throw e
-        }
+        encodingTable.getOrElse(bits.mkString, {
+          throw new NoSuchElementException(
+            f"There was a problem encoding bit, bits: ${bits.mkString}"
+          )
+        })
       }
       .toIterable
   }
@@ -59,13 +57,11 @@ case object DNACodec {
       .grouped(4)
       .map { groupOfFourBases =>
         val byteAsBinaryString = groupOfFourBases.map { base =>
-          try {
-            decodingTable(base)
-          } catch {
-            case e: NoSuchElementException =>
-              println(f"There was a problem decoding base: ${base}")
-              throw e
-          }
+          decodingTable.getOrElse(base, {
+            throw new NoSuchElementException(
+              f"There was a problem decoding base: ${base}"
+            )
+          })
         }.mkString
         val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
         resultingByte
@@ -94,7 +90,6 @@ object PolymeraseEncoder extends App {
     input.close()
     output.close()
   }
-
 }
 
 object PolymeraseDecoded extends App {
@@ -105,5 +100,4 @@ object PolymeraseDecoded extends App {
   }
   input.close()
   output.close()
-
 }
