@@ -26,8 +26,9 @@ case object DNACodec {
   private val decodingTable: Map[Nucleotide, String] =
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
-  val encodeCache = new collection.mutable.WeakHashMap[Byte, Seq[Nucleotide]]
-  val decodeCache = new collection.mutable.WeakHashMap[String, Byte]
+  private val encodeCache =
+    new collection.mutable.WeakHashMap[Byte, Seq[Nucleotide]]
+  private val decodeCache = new collection.mutable.WeakHashMap[String, Byte]
 
   private def groupString(str: String, len: Int): Seq[String] = {
     for (p <- 0 until str.length() by len)
@@ -69,7 +70,7 @@ case object DNACodec {
       val byteAsBinaryString = groupOfFourBases.map { base =>
         decodingTable.getOrElse(base, {
           throw new NoSuchElementException(
-            f"There was a problem decoding base: ${base}"
+            f"There was a problem decoding base: ${base}. Perhaps this is not a DNA Sequence?"
           )
         })
       }.mkString
@@ -112,7 +113,7 @@ object PolymeraseEncoder extends App {
 }
 
 object PolymeraseDecoded extends App {
-  val input = new BufferedInputStream(System.in)
+  val input = System.in
   val output = new DataOutputStream(new BufferedOutputStream(System.out))
 
   for {
