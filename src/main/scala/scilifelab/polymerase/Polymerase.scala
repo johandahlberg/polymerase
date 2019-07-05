@@ -26,7 +26,8 @@ case object DNACodec {
   private val decodingTable: Map[Nucleotide, String] =
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
   private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
-  val cache = new collection.mutable.WeakHashMap[Byte, Seq[Nucleotide]]
+  val encodeCache = new collection.mutable.WeakHashMap[Byte, Seq[Nucleotide]]
+  val decodeCache = new collection.mutable.WeakHashMap[String, Byte]
 
   private def groupString(str: String, len: Int): Seq[String] = {
     for (p <- 0 until str.length() by len)
@@ -42,7 +43,7 @@ case object DNACodec {
   }
 
   def encode(data: Byte): Seq[Nucleotide] = {
-    cache.getOrElse(
+    encodeCache.getOrElse(
       data, {
         val binaryStringData =
           String
@@ -55,25 +56,35 @@ case object DNACodec {
             )
           })
         }
-        cache.update(data, nuc)
+        encodeCache.update(data, nuc)
         nuc
       }
     )
   }
 
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
+
+    def fourBasesToByte(groupOfFourBases: Seq[Nucleotide]): Byte = {
+
+      val byteAsBinaryString = groupOfFourBases.map { base =>
+        decodingTable.getOrElse(base, {
+          throw new NoSuchElementException(
+            f"There was a problem decoding base: ${base}"
+          )
+        })
+      }.mkString
+      val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
+
+      decodeCache.update(groupOfFourBases.mkString, resultingByte)
+      resultingByte
+    }
+
     data
       .grouped(4)
       .map { groupOfFourBases =>
-        val byteAsBinaryString = groupOfFourBases.map { base =>
-          decodingTable.getOrElse(base, {
-            throw new NoSuchElementException(
-              f"There was a problem decoding base: ${base}"
-            )
-          })
-        }.mkString
-        val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
-        resultingByte
+        decodeCache.getOrElse(groupOfFourBases.mkString, {
+          fourBasesToByte(groupOfFourBases)
+        })
       }
   }
 
