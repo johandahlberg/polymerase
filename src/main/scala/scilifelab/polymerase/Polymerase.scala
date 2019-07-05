@@ -16,6 +16,7 @@ import java.io.PrintStream
 import java.io.DataOutputStream
 import java.io.DataInputStream
 import java.io.PrintWriter
+import java.io.FileInputStream
 
 case object DNACodec {
 
@@ -85,7 +86,7 @@ case object DNACodec {
 object PolymeraseEncoder extends App {
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
-  val output = new PrintWriter(System.out)
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
   try {
     while (true) {
       val data = input.readByte()
@@ -101,10 +102,14 @@ object PolymeraseEncoder extends App {
 
 object PolymeraseDecoded extends App {
   val input = new BufferedInputStream(System.in)
-  val output = new DataOutputStream(System.out)
-  for { byte <- DNACodec.decode(Source.fromInputStream(input)) } {
+  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+
+  for {
+    byte <- DNACodec.decode(Source.fromInputStream(input))
+  } {
     output.write(byte)
   }
+
   input.close()
   output.close()
 }
