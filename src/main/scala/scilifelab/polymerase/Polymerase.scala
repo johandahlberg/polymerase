@@ -18,10 +18,12 @@ import java.io.DataInputStream
 import java.io.PrintWriter
 import java.io.FileInputStream
 
+import scilifelab.polymerase._
+import scala.util.Random
+
 case object DNACodec {
 
   val charset = Charset.forName("UTF-8")
-  type Nucleotide = Char
 
   private val decodingTable: Map[Nucleotide, String] =
     Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
@@ -95,7 +97,25 @@ case object DNACodec {
   }
 }
 
-object PolymeraseEncoder extends App {
+object ErrorSimulator {
+  private val probOfError = 0.01
+  private val randomGenerator = new Random()
+  private def addError: Boolean = randomGenerator.nextFloat < probOfError
+
+  def addErrors(
+      input: Iterator[Nucleotide]
+  ): Iterator[Nucleotide] = {
+    for { nuc <- input } yield {
+      if (addError) {
+        nucleotides(randomGenerator.nextInt(nucleotides.size))
+      } else {
+        nuc
+      }
+    }
+  }
+}
+
+object PolymeraseEncode extends App {
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
@@ -112,12 +132,26 @@ object PolymeraseEncoder extends App {
   }
 }
 
-object PolymeraseDecoded extends App {
+object PolymeraseDecode extends App {
   val input = System.in
   val output = new DataOutputStream(new BufferedOutputStream(System.out))
 
   for {
     byte <- DNACodec.decode(Source.fromInputStream(input))
+  } {
+    output.write(byte)
+  }
+
+  input.close()
+  output.close()
+}
+
+object PolymeraseSimulateErrors extends App {
+  val input = System.in
+  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+
+  for {
+    byte <- ErrorSimulator.addErrors(Source.fromInputStream(input))
   } {
     output.write(byte)
   }
