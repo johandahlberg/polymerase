@@ -21,6 +21,10 @@ import scilifelab.polymerase._
 import java.io.InputStream
 import java.nio.CharBuffer
 import scala.collection.mutable
+import java.io.ObjectOutputStream
+import java.io.ObjectInputStream
+
+import util.control.Breaks._
 
 object PolymeraseEncode extends App {
 
@@ -35,6 +39,7 @@ object PolymeraseEncode extends App {
     case e: EOFException =>
   } finally {
     input.close()
+    output.flush()
     output.close()
   }
 }
@@ -50,6 +55,7 @@ object PolymeraseDecode extends App {
   }
 
   input.close()
+  output.flush()
   output.close()
 }
 
@@ -58,7 +64,7 @@ object PolymeraseSplit extends App {
   val splitSize = 100
 
   val input = System.in
-  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+  val output = new ObjectOutputStream(new BufferedOutputStream(System.out))
 
   def inputToDataContainers(input: InputStream): Iterator[DataContainer] = {
     Source
@@ -72,38 +78,47 @@ object PolymeraseSplit extends App {
       }
   }
 
+  var c = 0
   for { dataContainer <- inputToDataContainers(input) } {
-    //println(dataContainer)
-    output.write(dataContainer.toByteArray())
+    output.writeObject(dataContainer)
+    c += 1
   }
+  output.flush()
+
+  System.err.println(s"Wrote $c data containers")
 
 }
 
 object PolymeraseJoin extends App {
-  val input = new DataInputStream(new BufferedInputStream(System.in))
-  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+  val input = new ObjectInputStream(new BufferedInputStream(System.in))
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
 
   val sortedInput = scala.collection.mutable.SortedSet[DataContainer]()
 
+  var c = 0
   try {
-    var n = 0
     while (true) {
-      n = n + 1
-      val dataContainer = DataContainer.fromInputStream(input)
+      //println(s"c=$c")
+      val obj = input.readObject()
+      c += 1
+      val dataContainer = obj.asInstanceOf[DataContainer]
       sortedInput(dataContainer) = true
     }
   } catch {
-    case e: EOFException =>
+    case e: EOFException => {
+      System.err.println(s"found end of file after reading: $c containers")
+    }
   }
 
   for {
     elem <- sortedInput
   } {
     //println(elem)
-    //output.write(elem.dataAsBytes)
+    output.write(elem.data)
     //println(elem)
   }
   input.close()
+  output.flush()
   output.close()
 }
 
