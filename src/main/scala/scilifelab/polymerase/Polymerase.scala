@@ -159,3 +159,43 @@ object PolymeraseSimulateErrors extends App {
   input.close()
   output.close()
 }
+
+object TestingReedSolomon extends App {
+  import com.backblaze.erasure.ReedSolomon
+
+  def printShards(shards: Array[Array[Byte]]) =
+    shards.foreach { x =>
+      println(
+        x.mkString(" ")
+      )
+    }
+
+  val codec = ReedSolomon.create(4, 2)
+  val shards: Array[Array[Byte]] =
+    Array(
+      Array('A', 'B', 'C', 'D'),
+      Array('E', 'G', 'G', 'H'),
+      Array('I', 'J', 'K', 'L'),
+      Array('M', 'N', 'O', 'P'),
+      Array.fill(4)(0),
+      Array.fill(4)(0)
+    )
+
+  println()
+  println("Before encoding")
+
+  printShards(shards)
+  codec.encodeParity(shards, 0, 4)
+
+  println()
+  println("After encoding")
+  printShards(shards)
+
+  val present: Array[Boolean] = Array.fill(6) { true }
+  codec.decodeMissing(shards, present, 0, 4)
+
+  println()
+  println("Decoded")
+  printShards(shards)
+
+}

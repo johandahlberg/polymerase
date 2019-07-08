@@ -12,5 +12,10 @@ lazy val root = (project in file("."))
     name := "polymerase",
     libraryDependencies ++= Seq(scalaTest % Test, scalaCheck % Test)
   )
+  .dependsOn(reedSolomonCodeds)
+
+lazy val reedSolomonCodeds = RootProject(
+  uri("https://github.com/Backblaze/JavaReedSolomon.git")
+)
 
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
