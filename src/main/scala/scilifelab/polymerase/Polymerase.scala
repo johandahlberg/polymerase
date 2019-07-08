@@ -93,6 +93,8 @@ object PolymeraseJoin extends App {
   val input = new ObjectInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
 
+  // Todo this should probably be backed by disk spilling collection later
+  // so as to not run out of all memory. /JD 2019-07-08
   val sortedInput = scala.collection.mutable.SortedSet[DataContainer]()
 
   var c = 0
