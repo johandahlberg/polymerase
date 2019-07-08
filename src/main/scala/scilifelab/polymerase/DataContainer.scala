@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 
 case class DataContainer(
     index: Int,
-    val data: Seq[Char]
+    val data: List[Char]
 ) extends Ordered[DataContainer] {
 
   val dataAsBytes =
@@ -17,10 +17,9 @@ case class DataContainer(
 
   def toByteArray(): Array[Byte] = {
 
-    ByteBuffer.allocateDirect(index).array() ++
-      ByteBuffer.allocateDirect(bytesOfData).array() ++
+    ByteBuffer.allocate(4).putInt(index).array() ++
+      ByteBuffer.allocate(4).putInt(bytesOfData).array() ++
       dataAsBytes
-
   }
 }
 case object DataContainer {
@@ -29,7 +28,9 @@ case object DataContainer {
     val index = buffer.getInt()
     val bytesOfData = buffer.getInt()
     val dataAsBytes: Array[Byte] = Array.fill(bytesOfData)(0)
-    val dataAsChars = DNACodec.charset.decode(buffer.get(dataAsBytes)).array()
+    buffer.get(dataAsBytes)
+    val dataAsChars =
+      DNACodec.charset.decode(ByteBuffer.wrap(dataAsBytes)).array().toList
     DataContainer(index = index, data = dataAsChars)
   }
 }
