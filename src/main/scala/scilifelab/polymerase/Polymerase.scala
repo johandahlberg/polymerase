@@ -147,34 +147,87 @@ object PolymeraseDecode extends App {
   output.close()
 }
 
-object PolymeraseSplit extends App {
+case class DataContainer(index: Int, currentDataLength: Int, data: Seq[Char])
+    extends Ordered[DataContainer] {
 
-  case class DataContainer(index: Int, dataLength: Int, data: Seq[Char])
+  import scala.math.Ordered.orderingToOrdered
+  def compare(that: DataContainer): Int = this.index compare that.index
 
+}
+case object DataContainer {
   val dataLength = 100
+  val containerLength = 4 + 4 + dataLength
+}
+
+object PolymeraseSplit extends App {
 
   val input = System.in
   val output = new DataOutputStream(new BufferedOutputStream(System.out))
 
   def inputToDataContainers(input: InputStream): Iterator[DataContainer] = {
-    Source.fromInputStream(input).grouped(dataLength).zipWithIndex.map {
-      case (data, index) => {
-        val currentDataLength = data.length
-        if (currentDataLength < dataLength) {
-          DataContainer(index, currentDataLength, data.padTo(dataLength, 'A'))
-        } else {
-          DataContainer(index, currentDataLength, data)
+    Source
+      .fromInputStream(input)
+      .grouped(DataContainer.dataLength)
+      .zipWithIndex
+      .map {
+        case (data, index) => {
+          val currentDataLength = data.length
+          if (currentDataLength < DataContainer.dataLength) {
+            DataContainer(
+              index,
+              currentDataLength,
+              data.padTo(DataContainer.dataLength, 'A')
+            )
+          } else {
+            DataContainer(index, currentDataLength, data)
+          }
         }
       }
-    }
   }
 
   for { dataContainer <- inputToDataContainers(input) } {
     output.write(dataContainer.index)
-    output.write(dataContainer.dataLength)
+    output.write(dataContainer.currentDataLength)
     dataContainer.data.foreach(output.write(_))
   }
 
+}
+
+object PolymeraseJoin extends App {
+  val input = new DataInputStream(new BufferedInputStream(System.in))
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
+
+  val sortedInput = scala.collection.mutable.SortedSet[DataContainer]()
+
+  try {
+    while (true) {
+      val byteArray: Array[Byte] = Array.fill(DataContainer.containerLength)(0)
+      if (input.read(byteArray) == -1) throw new EOFException
+      val dataContainer = DataContainer(
+        index = byteArray(0),
+        currentDataLength = byteArray(1),
+        data = DNACodec.charset
+          .decode(
+            ByteBuffer.wrap(byteArray.slice(2, byteArray.length))
+          )
+          .array()
+      )
+      sortedInput(dataContainer) = true
+
+    }
+  } catch {
+    case e: EOFException =>
+  }
+
+  for {
+    elem <- sortedInput
+
+  } {
+    val data = elem.data.slice(0, elem.currentDataLength)
+    output.write(data.toArray)
+  }
+  input.close()
+  output.close()
 }
 
 object PolymeraseSimulateErrors extends App {
