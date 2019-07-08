@@ -1,6 +1,5 @@
 package scilifelab.polymerase
 
-import java.lang.{Short => JavaShort}
 import scala.io.Source
 import java.io.File
 import java.io.EOFException
@@ -19,102 +18,8 @@ import java.io.PrintWriter
 import java.io.FileInputStream
 
 import scilifelab.polymerase._
-import scala.util.Random
 import java.io.InputStream
-
-case object DNACodec {
-
-  val charset = Charset.forName("UTF-8")
-
-  private val decodingTable: Map[Nucleotide, String] =
-    Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
-  private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
-  private val encodeCache =
-    new collection.mutable.WeakHashMap[Byte, Seq[Nucleotide]]
-  private val decodeCache = new collection.mutable.WeakHashMap[String, Byte]
-
-  private def groupString(str: String, len: Int): Seq[String] = {
-    for (p <- 0 until str.length() by len)
-      yield str.substring(p, p + len)
-  }
-
-  def encode(data: String): Iterator[Nucleotide] = {
-    encode(data.getBytes(charset).toIterator)
-  }
-
-  def encode(data: Iterator[Byte]): Iterator[Nucleotide] = {
-    data.map(encode(_)).flatten
-  }
-
-  def encode(data: Byte): Seq[Nucleotide] = {
-    encodeCache.getOrElse(
-      data, {
-        val binaryStringData =
-          String
-            .format("%8s", Integer.toBinaryString(data & 0xFF))
-            .replace(' ', '0')
-        val nuc = groupString(binaryStringData, 2).map { bits =>
-          encodingTable.getOrElse(bits, {
-            throw new NoSuchElementException(
-              f"There was a problem encoding bit, bits: ${bits.mkString}"
-            )
-          })
-        }
-        encodeCache.update(data, nuc)
-        nuc
-      }
-    )
-  }
-
-  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
-
-    def fourBasesToByte(groupOfFourBases: Seq[Nucleotide]): Byte = {
-
-      val byteAsBinaryString = groupOfFourBases.map { base =>
-        decodingTable.getOrElse(base, {
-          throw new NoSuchElementException(
-            f"There was a problem decoding base: ${base}. Perhaps this is not a DNA Sequence?"
-          )
-        })
-      }.mkString
-      val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
-
-      decodeCache.update(groupOfFourBases.mkString, resultingByte)
-      resultingByte
-    }
-
-    data
-      .grouped(4)
-      .map { groupOfFourBases =>
-        decodeCache.getOrElse(groupOfFourBases.mkString, {
-          fourBasesToByte(groupOfFourBases)
-        })
-      }
-  }
-
-  def decodeString(data: Iterator[Nucleotide]): String = {
-    val byteDecoded = decode(data)
-    charset.decode(ByteBuffer.wrap(byteDecoded.toArray)).toString()
-  }
-}
-
-object ErrorSimulator {
-  private val probOfError = 0.01
-  private val randomGenerator = new Random()
-  private def addError: Boolean = randomGenerator.nextFloat < probOfError
-
-  def addErrors(
-      input: Iterator[Nucleotide]
-  ): Iterator[Nucleotide] = {
-    for { nuc <- input } yield {
-      if (addError) {
-        nucleotides(randomGenerator.nextInt(nucleotides.size))
-      } else {
-        nuc
-      }
-    }
-  }
-}
+import java.nio.CharBuffer
 
 object PolymeraseEncode extends App {
 
@@ -156,6 +61,12 @@ case class DataContainer(index: Int, currentDataLength: Int, data: Seq[Char])
 }
 case object DataContainer {
   val dataLength = 100
+  val dataByteLength: Int =
+    DNACodec.charset
+      .encode(CharBuffer.wrap(Array.fill(dataLength)('N')))
+      .array()
+      .length
+
   val containerLength = 4 + 4 + dataLength
 }
 
@@ -186,9 +97,22 @@ object PolymeraseSplit extends App {
   }
 
   for { dataContainer <- inputToDataContainers(input) } {
-    output.write(dataContainer.index)
-    output.write(dataContainer.currentDataLength)
-    dataContainer.data.foreach(output.write(_))
+    //println(s"index: ${dataContainer.index}")
+    //println(s"currentDataLength: ${dataContainer.currentDataLength}")
+    output.writeInt(dataContainer.index)
+    output.writeInt(dataContainer.currentDataLength)
+    output.write(
+      DNACodec.charset
+        .encode(CharBuffer.wrap(dataContainer.data.toArray))
+        .array()
+    )
+    //println(dataContainer)
+    //println(
+    //  DNACodec.charset
+    //    .encode(CharBuffer.wrap(dataContainer.data.toArray))
+    //    .array()
+    //    .mkString
+    //)
   }
 
 }
@@ -200,20 +124,39 @@ object PolymeraseJoin extends App {
   val sortedInput = scala.collection.mutable.SortedSet[DataContainer]()
 
   try {
+    var n = 0
     while (true) {
-      val byteArray: Array[Byte] = Array.fill(DataContainer.containerLength)(0)
-      if (input.read(byteArray) == -1) throw new EOFException
+      n = n + 1
+
+      //println(s"Added: $n elements")
+
+      val index = input.readInt()
+      //println(s"index is: ${index}")
+      val currentDataLength = input.readInt()
+      //println(s"current data length is: ${currentDataLength}")
+      val data =
+        Array
+          .fill(DataContainer.dataByteLength)(
+            DNACodec.charset.encode('N'.toString()).array()
+          )
+          .flatten
+      //println(data.mkString)
+      val bytesRead = input.read(data)
+      //println(s"bytesRead: $bytesRead")
+      if (bytesRead == -1) throw new EOFException
+
+      //println(data.mkString)
+
       val dataContainer = DataContainer(
-        index = byteArray(0),
-        currentDataLength = byteArray(1),
+        index = index,
+        currentDataLength = currentDataLength,
         data = DNACodec.charset
           .decode(
-            ByteBuffer.wrap(byteArray.slice(2, byteArray.length))
+            ByteBuffer.wrap(data.slice(2, currentDataLength))
           )
           .array()
       )
       sortedInput(dataContainer) = true
-
     }
   } catch {
     case e: EOFException =>
@@ -221,10 +164,8 @@ object PolymeraseJoin extends App {
 
   for {
     elem <- sortedInput
-
   } {
-    val data = elem.data.slice(0, elem.currentDataLength)
-    output.write(data.toArray)
+    output.write(elem.data.toArray)
   }
   input.close()
   output.close()
