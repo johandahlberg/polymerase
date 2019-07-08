@@ -23,6 +23,10 @@ case class DataContainer(
       ByteBuffer.allocate(4).putInt(bytesOfData).array() ++
       dataAsBytes
   }
+
+  override def toString(): String = {
+    s"DataContainer(index=$index, bytesOfData=$bytesOfData, data=${data.mkString})"
+  }
 }
 
 case object DataContainer {
@@ -43,6 +47,9 @@ case object DataContainer {
 
     val index = input.readInt()
     val currentDataLength = input.readInt()
+
+    println(s"index: $index")
+    println(s"currentDataLength: $currentDataLength")
 
     val data: Array[Byte] = Array.fill(currentDataLength) { 0 }
     val bytesRead = input.read(data)

@@ -73,6 +73,7 @@ object PolymeraseSplit extends App {
   }
 
   for { dataContainer <- inputToDataContainers(input) } {
+    //println(dataContainer)
     output.write(dataContainer.toByteArray())
   }
 
@@ -80,7 +81,7 @@ object PolymeraseSplit extends App {
 
 object PolymeraseJoin extends App {
   val input = new DataInputStream(new BufferedInputStream(System.in))
-  val output = new PrintWriter(new BufferedOutputStream(System.out))
+  val output = new DataOutputStream(new BufferedOutputStream(System.out))
 
   val sortedInput = scala.collection.mutable.SortedSet[DataContainer]()
 
@@ -98,7 +99,9 @@ object PolymeraseJoin extends App {
   for {
     elem <- sortedInput
   } {
-    output.write(elem.data)
+    //println(elem)
+    //output.write(elem.dataAsBytes)
+    //println(elem)
   }
   input.close()
   output.close()
