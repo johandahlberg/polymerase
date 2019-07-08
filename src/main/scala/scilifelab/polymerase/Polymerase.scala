@@ -20,6 +20,7 @@ import java.io.FileInputStream
 
 import scilifelab.polymerase._
 import scala.util.Random
+import java.io.InputStream
 
 case object DNACodec {
 
@@ -144,6 +145,36 @@ object PolymeraseDecode extends App {
 
   input.close()
   output.close()
+}
+
+object PolymeraseSplit extends App {
+
+  case class DataContainer(index: Int, dataLength: Int, data: Seq[Char])
+
+  val dataLength = 100
+
+  val input = System.in
+  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+
+  def inputToDataContainers(input: InputStream): Iterator[DataContainer] = {
+    Source.fromInputStream(input).grouped(dataLength).zipWithIndex.map {
+      case (data, index) => {
+        val currentDataLength = data.length
+        if (currentDataLength < dataLength) {
+          DataContainer(index, currentDataLength, data.padTo(dataLength, 'A'))
+        } else {
+          DataContainer(index, currentDataLength, data)
+        }
+      }
+    }
+  }
+
+  for { dataContainer <- inputToDataContainers(input) } {
+    output.write(dataContainer.index)
+    output.write(dataContainer.dataLength)
+    dataContainer.data.foreach(output.write(_))
+  }
+
 }
 
 object PolymeraseSimulateErrors extends App {
