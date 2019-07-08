@@ -98,7 +98,6 @@ object PolymeraseJoin extends App {
   var c = 0
   try {
     while (true) {
-      //println(s"c=$c")
       val obj = input.readObject()
       c += 1
       val dataContainer = obj.asInstanceOf[DataContainer]
@@ -113,9 +112,7 @@ object PolymeraseJoin extends App {
   for {
     elem <- sortedInput
   } {
-    //println(elem)
     output.write(elem.data)
-    //println(elem)
   }
   input.close()
   output.flush()
