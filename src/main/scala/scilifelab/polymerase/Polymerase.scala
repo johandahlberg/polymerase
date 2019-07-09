@@ -25,15 +25,19 @@ import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 
 import util.control.Breaks._
+import scala.util.Random
 
 object PolymeraseEncode extends App {
+
+  val psudoRandomGenerator = new Random(9876L)
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
   try {
     while (true) {
       val data = input.readByte()
-      output.write(DNACodec.encode(data).toArray)
+      val randomizedData = (data ^ psudoRandomGenerator.nextInt()).toByte
+      output.write(DNACodec.encode(randomizedData).toArray)
     }
   } catch {
     case e: EOFException =>
@@ -48,9 +52,12 @@ object PolymeraseDecode extends App {
   val input = System.in
   val output = new DataOutputStream(new BufferedOutputStream(System.out))
 
+  val psudoRandomGenerator = new Random(9876L)
+
   for {
-    byte <- DNACodec.decode(Source.fromInputStream(input))
+    randomByte <- DNACodec.decode(Source.fromInputStream(input))
   } {
+    val byte = (randomByte ^ psudoRandomGenerator.nextInt()).toByte
     output.write(byte)
   }
 
@@ -107,7 +114,7 @@ object PolymeraseJoin extends App {
     }
   } catch {
     case e: EOFException => {
-      System.err.println(s"found end of file after reading: $c containers")
+      System.err.println(s"Found end of file after reading $c data containers")
     }
   }
 
