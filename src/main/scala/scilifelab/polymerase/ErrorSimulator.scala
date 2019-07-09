@@ -12,7 +12,9 @@ object ErrorSimulator {
   ): Iterator[Nucleotide] = {
     for { nuc <- input } yield {
       if (addError) {
-        nucleotides(randomGenerator.nextInt(nucleotides.size))
+        nucleotides.filter(p => p != nuc)(
+          randomGenerator.nextInt(nucleotides.size)
+        )
       } else {
         nuc
       }
