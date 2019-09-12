@@ -22,6 +22,14 @@ object ReedSolomonDNACodec {
     dnaEncodedData
 
   }
-  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = ???
+
+  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
+
+    val bytes = DNACodec.decode(data)
+    val byteBlocks =
+      bytes.map(x => x & (0xff)).grouped(RSDefaults.messageSize + Integer.BYTES)
+
+    byteBlocks.flatMap(x => rsCoder.decode(x.toArray)._1).map(_.toByte)
+  }
 
 }
