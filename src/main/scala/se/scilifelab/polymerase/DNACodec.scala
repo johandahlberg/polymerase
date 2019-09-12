@@ -1,4 +1,4 @@
-package scilifelab.polymerase
+package se.scilifelab.polymerase
 
 import java.nio.charset.Charset
 import java.lang.{Short => JavaShort}

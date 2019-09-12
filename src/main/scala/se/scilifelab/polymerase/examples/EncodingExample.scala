@@ -1,6 +1,6 @@
-package scilifelab.polymerase.examples
+package se.scilifelab.polymerase.examples
 
-import scilifelab.polymerase.DNACodec
+import se.scilifelab.polymerase.DNACodec
 
 object EncodingExample extends App {
 

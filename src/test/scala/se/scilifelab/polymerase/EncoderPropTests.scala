@@ -1,4 +1,4 @@
-package scilifelab.polymerase
+package se.scilifelab.polymerase
 
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll

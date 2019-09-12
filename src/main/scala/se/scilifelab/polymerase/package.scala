@@ -1,4 +1,4 @@
-package scilifelab
+package se.scilifelab
 
 package object polymerase {
   type Nucleotide = Char

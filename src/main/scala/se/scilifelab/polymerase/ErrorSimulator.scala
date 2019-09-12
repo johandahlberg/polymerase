@@ -1,4 +1,4 @@
-package scilifelab.polymerase
+package se.scilifelab.polymerase
 
 import scala.util.Random
 

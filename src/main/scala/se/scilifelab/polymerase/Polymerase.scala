@@ -1,4 +1,4 @@
-package scilifelab.polymerase
+package se.scilifelab.polymerase
 
 import scala.io.Source
 import java.io.File
@@ -140,53 +140,4 @@ object PolymeraseSimulateErrors extends App {
 
   input.close()
   output.close()
-}
-
-object TestingReedSolomon extends App {
-  import com.backblaze.erasure.ReedSolomon
-
-  def printShards(shards: Array[Array[Byte]]) =
-    shards.foreach { x =>
-      println(
-        x.mkString(" ")
-      )
-    }
-
-  // TODO What do to with data unequal length?
-
-  val codec = ReedSolomon.create(4, 2)
-  val shards: Array[Array[Byte]] =
-    Array(
-      Array('A', 'B', 'C', 'D'),
-      Array('E', 'G', 'G', 'H'),
-      Array('I', 'J', 'K', 'L'),
-      Array('M', 'N', 'O', 'P'),
-      Array.fill(4)(0),
-      Array.fill(4)(0)
-    )
-
-  println()
-  println("Before encoding")
-  printShards(shards)
-
-  codec.encodeParity(shards, 0, 4)
-
-  println()
-  println("After encoding")
-  println(s"Is correct: ${codec.isParityCorrect(shards, 0, 2)}")
-  printShards(shards)
-
-  shards.update(2, Array('M', 'M', 'M', 'M'))
-  println()
-  printShards(shards)
-  println(s"Is correct: ${codec.isParityCorrect(shards, 0, 2)}")
-
-  val present: Array[Boolean] = Array.fill(6) { true }
-  codec.decodeMissing(shards, present, 0, 4)
-  codec.decodeMissing()
-
-  println()
-  println("Decoded")
-  printShards(shards)
-  println(s"Is correct: ${codec.isParityCorrect(shards, 0, 2)}")
 }
