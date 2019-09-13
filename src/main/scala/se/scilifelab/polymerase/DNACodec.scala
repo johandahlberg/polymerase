@@ -20,6 +20,12 @@ case object DNACodec {
       yield str.substring(p, p + len)
   }
 
+  private def byteToBinaryString(byte: Byte): String = {
+    String
+      .format("%8s", Integer.toBinaryString(byte & 0xFF))
+      .replace(' ', '0')
+  }
+
   def encode(data: String): Iterator[Nucleotide] = {
     encode(data.getBytes(charset).toIterator)
   }
@@ -28,24 +34,34 @@ case object DNACodec {
     data.map(encode(_)).flatten
   }
 
+  // TODO Encode that we only accept integers in the range 0 - 255
+  def encodeBlocks(data: Iterator[Array[Int]]): Iterator[Nucleotide] = {
+    for {
+      block <- data
+      int <- block
+      e <- encode(int)
+    } yield e
+  }
+
+  def encode(data: Int): Seq[Nucleotide] = {
+    val integerByteString = byteToBinaryString(data.toByte)
+    encodeBinaryString(integerByteString)
+  }
+
   def encode(data: Byte): Seq[Nucleotide] = {
-    encodeCache.getOrElse(
-      data, {
-        val binaryStringData =
-          String
-            .format("%8s", Integer.toBinaryString(data & 0xFF))
-            .replace(' ', '0')
-        val nuc = groupString(binaryStringData, 2).map { bits =>
-          encodingTable.getOrElse(bits, {
-            throw new NoSuchElementException(
-              f"There was a problem encoding bit, bits: ${bits.mkString}"
-            )
-          })
-        }
-        encodeCache.update(data, nuc)
-        nuc
-      }
-    )
+    val integerByteString = byteToBinaryString(data)
+    encodeBinaryString(integerByteString)
+  }
+
+  def encodeBinaryString(binaryStringData: String): Seq[Nucleotide] = {
+    val nuc = groupString(binaryStringData, 2).map { bits =>
+      encodingTable.getOrElse(bits, {
+        throw new NoSuchElementException(
+          f"There was a problem encoding bit, bits: ${bits.mkString}"
+        )
+      })
+    }
+    nuc
   }
 
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
