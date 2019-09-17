@@ -27,6 +27,8 @@ import java.io.ObjectInputStream
 import util.control.Breaks._
 import scala.util.Random
 
+import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
+
 object PolymeraseEncode extends App {
 
   val psudoRandomGenerator = new Random(9876L)
@@ -66,67 +68,51 @@ object PolymeraseDecode extends App {
   output.close()
 }
 
-object PolymeraseSplit extends App {
+object PolymeraseRSEncode extends App {
 
-  val splitSize = 100
+  val input = new DataInputStream(new BufferedInputStream(System.in))
+  val output = new BufferedOutputStream(System.out)
+  val inputBytes =
+    Stream.continually(input.read()).takeWhile(_ != -1).map(_.toByte).toIterator
+  val encoded = ReedSolomonDNACodec.encode(inputBytes)
+  encoded.foreach(x => output.write(x))
 
-  val input = System.in
-  val output = new ObjectOutputStream(new BufferedOutputStream(System.out))
-
-  def inputToDataContainers(input: InputStream): Iterator[DataContainer] = {
-    Source
-      .fromInputStream(input)
-      .grouped(splitSize)
-      .zipWithIndex
-      .map {
-        case (data, index) => {
-          DataContainer(index = index, data = data.toArray)
-        }
-      }
-  }
-
-  var c = 0
-  for { dataContainer <- inputToDataContainers(input) } {
-    output.writeObject(dataContainer)
-    c += 1
-  }
-  output.flush()
-
-  System.err.println(s"Wrote $c data containers")
-
-}
-
-object PolymeraseJoin extends App {
-  val input = new ObjectInputStream(new BufferedInputStream(System.in))
-  val output = new PrintWriter(new BufferedOutputStream(System.out))
-
-  // Todo this should probably be backed by disk spilling collection later
-  // so as to not run out of all memory. /JD 2019-07-08
-  val sortedInput = scala.collection.mutable.SortedSet[DataContainer]()
-
-  var c = 0
-  try {
-    while (true) {
-      val obj = input.readObject()
-      c += 1
-      val dataContainer = obj.asInstanceOf[DataContainer]
-      sortedInput(dataContainer) = true
-    }
-  } catch {
-    case e: EOFException => {
-      System.err.println(s"Found end of file after reading $c data containers")
-    }
-  }
-
-  for {
-    elem <- sortedInput
-  } {
-    output.write(elem.data)
-  }
   input.close()
   output.flush()
   output.close()
 }
+
+object PolymeraseRSDecode extends App {
+
+  val input = Source.fromInputStream(System.in)
+  val output = new BufferedOutputStream(System.out)
+
+  val data = ReedSolomonDNACodec.decode(input.iter)
+  data.foreach(x => output.write(x))
+
+  input.close()
+  output.flush()
+  output.close()
+
+}
+
+//object PolymeraseRSDecode extends App {
+//val input = System.in
+//val output = new DataOutputStream(new BufferedOutputStream(System.out))
+//
+//var blocks = 0
+//for {
+//byte <- ReedSolomonDNACodec.decode(Source.fromInputStream(input))
+//} {
+//output.write(byte)
+//blocks += 1
+//}
+//
+//input.close()
+//output.flush()
+//output.close()
+//System.err.println(s"nbr of blocks in decode: $blocks")
+//}
 
 object PolymeraseSimulateErrors extends App {
   val input = System.in
