@@ -17,7 +17,6 @@ import java.io.DataInputStream
 import java.io.PrintWriter
 import java.io.FileInputStream
 
-import scilifelab.polymerase._
 import java.io.InputStream
 import java.nio.CharBuffer
 import scala.collection.mutable
@@ -26,6 +25,8 @@ import java.io.ObjectInputStream
 
 import util.control.Breaks._
 import scala.util.Random
+
+import se.scilifelab.polymerase._
 
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
 
@@ -96,33 +97,12 @@ object PolymeraseRSDecode extends App {
 
 }
 
-//object PolymeraseRSDecode extends App {
-//val input = System.in
-//val output = new DataOutputStream(new BufferedOutputStream(System.out))
-//
-//var blocks = 0
-//for {
-//byte <- ReedSolomonDNACodec.decode(Source.fromInputStream(input))
-//} {
-//output.write(byte)
-//blocks += 1
-//}
-//
-//input.close()
-//output.flush()
-//output.close()
-//System.err.println(s"nbr of blocks in decode: $blocks")
-//}
-
 object PolymeraseSimulateErrors extends App {
-  val input = System.in
-  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+  val input = Source.fromInputStream(System.in)
+  val output = new BufferedOutputStream(System.out)
 
-  for {
-    byte <- ReedSolomonDNACodec.decode(Source.fromInputStream(input))
-  } {
-    output.write(byte)
-  }
+  val data = ErrorSimulator.addErrors(input.iter)
+  data.foreach(x => output.write(x))
 
   input.close()
   output.flush()
