@@ -2,7 +2,7 @@ package se.scilifelab.polymerase
 
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
-import org.scalacheck.Gen.nonEmptyListOf
+import org.scalacheck.Gen.{nonEmptyListOf, listOfN}
 import org.scalacheck.Arbitrary.arbitrary
 
 object RSEncoderDecoderSpecification

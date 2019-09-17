@@ -21,4 +21,11 @@ class ReedSolomonDNACodecSpec extends FlatSpec with Matchers {
       .decode(ReedSolomonDNACodec.encode(data.toIterator))
       .toSeq === data
   }
+
+  it should "encode a larger list of bytes than the message size" in {
+    val data = Seq.fill(250)(123).map(_.toByte)
+    val encoded = ReedSolomonDNACodec.encode(data.toIterator).toSeq
+    val decoded = ReedSolomonDNACodec.decode(encoded.iterator).toSeq
+    decoded === data
+  }
 }

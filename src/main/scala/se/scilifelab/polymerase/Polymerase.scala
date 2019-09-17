@@ -69,18 +69,26 @@ object PolymeraseDecode extends App {
 }
 
 object PolymeraseRSEncode extends App {
-  val input = new DataInputStream(new BufferedInputStream(System.in))
-  val output = new PrintWriter(new BufferedOutputStream(System.out))
 
-  var c = 0
-  var sizeOfLastOutput = 0
-  while (c >= 0) {
-    val readArray = Array.fill(RSDefaults.messageSize - Integer.BYTES)(0.toByte)
-    c = input.read(readArray)
-    if (c > 0) {
-      output.write(ReedSolomonDNACodec.encode(readArray.toIterator).toArray)
-    }
-  }
+  val input = new DataInputStream(new BufferedInputStream(System.in))
+  val output = new BufferedOutputStream(System.out)
+  val inputBytes =
+    Stream.continually(input.read()).takeWhile(_ != -1).map(_.toByte).toIterator
+  val encoded = ReedSolomonDNACodec.encode(inputBytes)
+  encoded.foreach(x => output.write(x))
+
+  input.close()
+  output.flush()
+  output.close()
+}
+
+object PolymeraseRSDecode extends App {
+
+  val input = Source.fromInputStream(System.in)
+  val output = new BufferedOutputStream(System.out)
+
+  val data = ReedSolomonDNACodec.decode(input.iter)
+  data.foreach(x => output.write(x))
 
   input.close()
   output.flush()
@@ -88,7 +96,25 @@ object PolymeraseRSEncode extends App {
 
 }
 
-object PolymeraseRSDecode extends App {
+//object PolymeraseRSDecode extends App {
+//val input = System.in
+//val output = new DataOutputStream(new BufferedOutputStream(System.out))
+//
+//var blocks = 0
+//for {
+//byte <- ReedSolomonDNACodec.decode(Source.fromInputStream(input))
+//} {
+//output.write(byte)
+//blocks += 1
+//}
+//
+//input.close()
+//output.flush()
+//output.close()
+//System.err.println(s"nbr of blocks in decode: $blocks")
+//}
+
+object PolymeraseSimulateErrors extends App {
   val input = System.in
   val output = new DataOutputStream(new BufferedOutputStream(System.out))
 
