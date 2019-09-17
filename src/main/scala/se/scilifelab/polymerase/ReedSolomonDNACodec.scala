@@ -18,7 +18,6 @@ object ReedSolomonDNACodec {
     val groupedDataWithLength = data
       .grouped(RSDefaults.messageSize - Integer.BYTES)
       .map { x =>
-        //System.err.println(s"Length of block in encode: ${x.length}")
         (x.length +: x.map(y => y & (0xff)))
       }
 
@@ -40,9 +39,6 @@ object ReedSolomonDNACodec {
     val byteBlocks =
       bytes
         .map(x => x & (0xff))
-        // There is 8 bits per encoded byte, and 2 bits encoded
-        // per nucleotide.
-        // 8 / 2 = 4 which is the number modifer for the message size.
         .grouped(RSDefaults.dictonarySize)
 
     byteBlocks
@@ -52,7 +48,6 @@ object ReedSolomonDNACodec {
       .flatMap { res =>
         // Only pick up the original data, i.e. strip the length of the data block
         val length = res.head
-        //System.err.println(s"Length of block in decode: ${length}")
         res.tail.take(length).map(_.toByte)
       }
   }

@@ -9,7 +9,6 @@ object RSEncoderDecoderSpecification
     extends Properties("Polymerase Reed-Solomon Encoders/Decoders") {
 
   val nonEmptyBytes = nonEmptyListOf(arbitrary[Byte])
-  val largerList = listOfN(250, arbitrary[Byte])
 
   property(
     "Encoding and decoding a stream of bytes should return " +
@@ -32,14 +31,5 @@ object RSEncoderDecoderSpecification
     val res = ReedSolomonDNACodec.decode(garbled.toIterator).toList
     a == res
   }
-
-  //property("Encoding and decofing a larger stream should work") =
-  //  forAll(largerList) { a =>
-  //    val res =
-  //      ReedSolomonDNACodec
-  //        .decode(ReedSolomonDNACodec.encode(a.toIterator))
-  //        .toList
-  //    a == res
-  //  }
 
 }
