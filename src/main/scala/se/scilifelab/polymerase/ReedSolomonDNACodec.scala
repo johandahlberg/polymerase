@@ -40,6 +40,9 @@ object ReedSolomonDNACodec {
 
   }
 
+  def iterateInIndexOrder(in: Iterable[(Int, Array[Byte])]): Iterator[Byte] =
+    ???
+
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
 
     val bytes = DNACodec.decode(data)
@@ -49,16 +52,21 @@ object ReedSolomonDNACodec {
         .map(x => x & (0xff))
         .grouped(RSDefaults.dictonarySize)
 
-    byteBlocks
+    val indexesAndData = byteBlocks
       .map { x =>
         rsCoder.decode(x.toArray)._1
       }
-      .flatMap { res =>
-        // Only pick up the original data, i.e. strip the length of the data block
-        // TODO Get the index and sort based on it.
+      .map { res =>
+        // Only pick up the original data, i.e. strip the length of the data block,
+        // and the index.
         val length = res.head
-        res.drop(5).take(length).map(_.toByte)
+        val index = ByteBuffer.wrap(res.tail.take(4).map(_.toByte)).getInt()
+        val data = res.drop(5).take(length).map(_.toByte)
+        (index, data)
       }
+    // TODO This materializes the entire file here, which will not work very well
+    //      for large files.
+    indexesAndData.toSeq.sortBy(_._1).flatMap(_._2).toIterator
   }
 
 }
