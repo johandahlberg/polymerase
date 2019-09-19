@@ -74,7 +74,11 @@ object PolymeraseRSEncode extends App {
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new BufferedOutputStream(System.out)
   val inputBytes =
-    Stream.continually(input.read()).takeWhile(_ != -1).map(_.toByte).toIterator
+    LazyList
+      .continually(input.read())
+      .takeWhile(_ != -1)
+      .map(_.toByte)
+      .toIterator
   val encoded = ReedSolomonDNACodec.encode(inputBytes)
   encoded.foreach(x => output.write(x))
 
