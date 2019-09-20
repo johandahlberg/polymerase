@@ -3,7 +3,7 @@ package se.scilifelab.polymerase
 import scala.util.Random
 
 object ErrorSimulator {
-  private val probOfError = 0.01
+  private val probOfError = 0.001
   private val randomGenerator = new Random()
   private def addError: Boolean = randomGenerator.nextFloat < probOfError
 
@@ -13,7 +13,7 @@ object ErrorSimulator {
     for { nuc <- input } yield {
       if (addError) {
         nucleotides.filter(p => p != nuc)(
-          randomGenerator.nextInt(nucleotides.size)
+          randomGenerator.nextInt(nucleotides.size - 1)
         )
       } else {
         nuc

@@ -107,11 +107,19 @@ object PolymeraseRSDecode extends App {
 }
 
 object PolymeraseSimulateErrors extends App {
-  val input = Source.fromInputStream(System.in)
-  val output = new BufferedOutputStream(System.out)
+  // TODO Make this read Fasta files
 
-  val data = ErrorSimulator.addErrors(input.iter)
-  data.foreach(x => output.write(x))
+  val input = Source.fromInputStream(System.in)
+  val lines = input.getLines()
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
+
+  for { line <- lines } {
+    if (line.startsWith(">")) {
+      output.println(line)
+    } else {
+      output.println(ErrorSimulator.addErrors(line.iterator).mkString)
+    }
+  }
 
   input.close()
   output.flush()
