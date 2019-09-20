@@ -26,7 +26,7 @@ object RSEncoderDecoderSpecification
       "the original byte when there are are errors"
   ) = forAll(nonEmptyBytes) { a =>
     val encoded = ReedSolomonDNACodec.encode(a.toIterator).toList
-    val garbled = encoded.updated(encoded.indexOf('A'), 'T')
+    val garbled = encoded.map(x => x.updated(x.indexOf('A'), 'T'))
     require(encoded != garbled)
     val res = ReedSolomonDNACodec.decode(garbled.toIterator).toList
     a == res

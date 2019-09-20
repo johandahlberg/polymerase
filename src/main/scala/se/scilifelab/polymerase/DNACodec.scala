@@ -34,6 +34,10 @@ case object DNACodec {
     data.map(encode(_)).flatten
   }
 
+  def encode(data: Array[Int]): Array[Nucleotide] = {
+    data.map(int => encode(int)).flatten
+  }
+
   // TODO Encode that we only accept integers in the range 0 - 255
   def encodeBlocks(data: Iterator[Array[Int]]): Iterator[Nucleotide] = {
     for {

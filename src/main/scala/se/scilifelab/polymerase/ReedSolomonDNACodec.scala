@@ -15,7 +15,7 @@ object ReedSolomonDNACodec {
   // TODO Psudo randomize bytes, to avoid monomer stretches.
   //      Or better still, rotate bases as described in X.
 
-  def encode(data: Iterator[Byte]): Iterator[Nucleotide] = {
+  def encode(data: Iterator[Byte]): Iterator[Array[Nucleotide]] = {
 
     val groupedDataWithLength = data
     // Use the integers to encode length and index of message
@@ -35,15 +35,18 @@ object ReedSolomonDNACodec {
     }
 
     val dnaEncodedData =
-      DNACodec.encodeBlocks(rsEncodedData)
+      rsEncodedData.map(data => DNACodec.encode(data))
+
+    //val dnaEncodedData =
+    //  DNACodec.encodeBlocks(rsEncodedData)
 
     dnaEncodedData
 
   }
 
-  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
+  def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
 
-    val bytes = DNACodec.decode(data)
+    val bytes = data.map(d => DNACodec.decode(d.iterator)).flatten
 
     val byteBlocks =
       bytes

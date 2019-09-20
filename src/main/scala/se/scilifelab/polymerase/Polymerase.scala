@@ -72,7 +72,7 @@ object PolymeraseDecode extends App {
 object PolymeraseRSEncode extends App {
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
-  val output = new BufferedOutputStream(System.out)
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
   val inputBytes =
     LazyList
       .continually(input.read())
@@ -80,7 +80,11 @@ object PolymeraseRSEncode extends App {
       .map(_.toByte)
       .toIterator
   val encoded = ReedSolomonDNACodec.encode(inputBytes)
-  encoded.foreach(x => output.write(x))
+  encoded.zipWithIndex.foreach {
+    case (x, i) =>
+      output.println(s">dna $i")
+      output.println(x)
+  }
 
   input.close()
   output.flush()
@@ -90,9 +94,10 @@ object PolymeraseRSEncode extends App {
 object PolymeraseRSDecode extends App {
 
   val input = Source.fromInputStream(System.in)
+  val lines = input.getLines().filter(s => !s.startsWith(">"))
   val output = new BufferedOutputStream(System.out)
 
-  val data = ReedSolomonDNACodec.decode(input.iter)
+  val data = ReedSolomonDNACodec.decode(lines.map(x => x.toArray))
   data.foreach(x => output.write(x))
 
   input.close()
