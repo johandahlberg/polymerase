@@ -3,6 +3,7 @@ package se.scilifelab.polymerase
 import se.scilifelab.reedsolomon.ReedSolomonCoder
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
 import java.nio.ByteBuffer
+import scala.util.Random
 
 object ReedSolomonDNACodec {
 
@@ -33,15 +34,89 @@ object ReedSolomonDNACodec {
       rsCoder.encode(mess)
     }
 
+    val tmpTestRandomOrder = Random.shuffle(rsEncodedData.toSeq).iterator
+
     val dnaEncodedData =
-      DNACodec.encodeBlocks(rsEncodedData)
+      DNACodec.encodeBlocks(tmpTestRandomOrder)
 
     dnaEncodedData
 
   }
 
-  def iterateInIndexOrder(in: Iterable[(Int, Array[Byte])]): Iterator[Byte] =
-    ???
+  def iterateInIndexOrder(in: Iterator[(Int, Array[Byte])]): Iterator[Byte] = {
+
+    val queue =
+      scala.collection.mutable.PriorityQueue.empty[(Int, Array[Byte])](
+        Ordering.by((_: (Int, Array[Byte]))._1 * -1)
+      )
+
+    def enqueUntilFound(index: Int): Unit = {
+
+      import util.control.Breaks._
+
+      breakable {
+        while (in.hasNext) {
+          val next = in.next()
+          if (next._1 == index) {
+            System.err.println("Found index")
+            queue.enqueue(next)
+            break()
+          } else {
+            System.err.println("Found out of order index")
+            queue.enqueue(next)
+          }
+        }
+      }
+    }
+
+    def iterateIndexes(indexes: Iterator[Int]): Iterator[Byte] = {
+      val indexToSearchFor = indexes.next()
+      System.err.println(s"indexToSearchFor: $indexToSearchFor")
+      if (queue.find(_._1 == indexToSearchFor).isDefined) {
+        System.err.println(s"Found index in queue")
+        Iterator.single(queue.dequeue()._2).flatten
+      } else {
+        System.err.println(s"Did not find index in queue")
+        enqueUntilFound(indexToSearchFor)
+        Iterator.single(queue.dequeue()._2).flatten
+      }
+    }
+
+    // TODO Not sure if the -1 above should be there or not...
+    // Depends on how ordering is working...
+    val indexStream = Iterator.from(0)
+
+    val found = indexStream
+      .takeWhile(_ => in.hasNext)
+      .map { indexToSearchFor =>
+        System.err.println(s"indexToSearchFor: $indexToSearchFor")
+        queue.enqueue(in.next())
+        val indexInQueue = queue.find(_._1 == indexToSearchFor)
+        if (indexInQueue.isDefined) {
+          System.err.println(s"Found index in queue")
+          Iterator.single(indexInQueue.get._2).flatten
+        } else {
+          System.err.println(s"Did not find index in queue")
+          enqueUntilFound(indexToSearchFor)
+          Iterator.single(queue.dequeue()._2).flatten
+        }
+      }
+      .flatten
+
+    val elems = queue.dequeueAll
+    val rest = elems.map(_._2).iterator.flatten
+
+    // .iterator
+    //   .map((x: Iterator[(Int, Array[Byte])]) => x._2)
+    //   .flatten
+
+    //val rest = Iterator
+    //  .continually(queue.dequeue()._2.iterator)
+    //  .takeWhile(_ => !queue.isEmpty)
+    //  .flatten
+
+    found ++ rest
+  }
 
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
 
@@ -64,9 +139,8 @@ object ReedSolomonDNACodec {
         val data = res.drop(5).take(length).map(_.toByte)
         (index, data)
       }
-    // TODO This materializes the entire file here, which will not work very well
-    //      for large files.
-    indexesAndData.toSeq.sortBy(_._1).flatMap(_._2).toIterator
+    //iterateInIndexOrder(indexesAndData)
+    indexesAndData.toSeq.sortBy(_._1).map(_._2).flatten.iterator
   }
 
 }
