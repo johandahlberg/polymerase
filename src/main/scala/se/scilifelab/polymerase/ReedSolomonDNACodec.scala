@@ -37,9 +37,6 @@ object ReedSolomonDNACodec {
     val dnaEncodedData =
       rsEncodedData.map(data => DNACodec.encode(data))
 
-    //val dnaEncodedData =
-    //  DNACodec.encodeBlocks(rsEncodedData)
-
     dnaEncodedData
 
   }
