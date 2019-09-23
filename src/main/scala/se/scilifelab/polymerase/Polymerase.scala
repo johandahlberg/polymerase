@@ -1,33 +1,12 @@
 package se.scilifelab.polymerase
 
-import scala.io.Source
-import java.io.File
-import java.io.EOFException
-import java.nio.charset.Charset
-import scala.io.StdIn
-import java.nio.ByteBuffer
-import java.nio.file.Files
-import java.io.BufferedOutputStream
-import java.io.BufferedInputStream
-import java.io.FileOutputStream
-import java.io.OutputStream
-import java.io.PrintStream
-import java.io.DataOutputStream
 import java.io.DataInputStream
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.PrintWriter
-import java.io.FileInputStream
-
-import java.io.InputStream
-import java.nio.CharBuffer
-import scala.collection.mutable
-import java.io.ObjectOutputStream
-import java.io.ObjectInputStream
-
-import util.control.Breaks._
-import scala.util.Random
+import scala.io.Source
 
 import se.scilifelab.polymerase._
-
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
 
 trait EncoderApp extends App {

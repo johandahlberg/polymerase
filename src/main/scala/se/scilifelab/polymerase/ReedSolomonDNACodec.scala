@@ -2,8 +2,6 @@ package se.scilifelab.polymerase
 
 import se.scilifelab.reedsolomon.ReedSolomonCoder
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
-import java.nio.ByteBuffer
-import scala.util.Random
 
 object ReedSolomonDNACodec {
 

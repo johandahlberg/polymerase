@@ -1,4 +1,5 @@
 package se.scilifelab.polymerase
+
 import java.nio.ByteBuffer
 
 object CodecUtils {
