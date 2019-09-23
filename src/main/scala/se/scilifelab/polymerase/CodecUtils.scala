@@ -26,6 +26,11 @@ object CodecUtils {
   def sortIndexAndDataOutput(
       indexesAndData: Iterator[(Int, Array[Byte])]
   ): Iterator[Byte] = {
+    // This will materialize the entire file in memory,
+    // so for very large files this obviously won't work
+    // very well. However, for cases where the file is large
+    // enough for this to be a problem, it is probably a good idea
+    // to use some existing utility to split files before encoding them.
     indexesAndData.toSeq.sortBy(_._1).map(_._2).flatten.iterator
   }
 }

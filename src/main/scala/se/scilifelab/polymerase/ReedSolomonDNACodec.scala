@@ -57,11 +57,7 @@ object ReedSolomonDNACodec {
       .map { res =>
         CodecUtils.deconstructDataBlock(res)
       }
-    // This will materialize the entire file in memory,
-    // so for very large files this obviously won't work
-    // very well. However, for cases where the file is large
-    // enough for this to be a problem, it is probably a good idea
-    // to use some existing utility to split files before encoding them.
+
     CodecUtils.sortIndexAndDataOutput(indexesAndData)
   }
 
