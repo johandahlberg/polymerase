@@ -85,7 +85,6 @@ object PolymeraseEncode extends EncoderApp {
 }
 
 object PolymeraseDecode extends DecoderApp {
-  //lazy val blockSize = PolymeraseEncode.blockSize + Integer.BYTES * 2
   def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]] = {
     data.map(_.toArray)
   }
