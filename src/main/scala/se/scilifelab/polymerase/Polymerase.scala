@@ -93,28 +93,14 @@ object PolymeraseDecode extends DecoderApp {
   }
 }
 
-object PolymeraseRSEncode extends App {
+object PolymeraseRSEncode extends EncoderApp {
 
-  val input = new DataInputStream(new BufferedInputStream(System.in))
-  val output = new PrintWriter(new BufferedOutputStream(System.out))
-
-  val inputBytes =
-    LazyList
-      .continually(input.read())
-      .takeWhile(_ != -1)
-      .map(_.toByte)
-      .toIterator
-  val encoded = ReedSolomonDNACodec.encode(inputBytes)
-
-  encoded.zipWithIndex.foreach {
-    case (x, i) =>
-      output.println(s">dna $i")
-      output.println(x)
+  def preEncoding(data: Iterator[Int]): Iterator[Array[Int]] = {
+    data.grouped(ReedSolomonDNACodec.blockSize).map(_.toArray)
   }
-
-  input.close()
-  output.flush()
-  output.close()
+  def encode(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
+    ReedSolomonDNACodec.encodeBlock(data)
+  }
 }
 
 object PolymeraseRSDecode extends App {
