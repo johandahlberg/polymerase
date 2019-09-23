@@ -30,7 +30,11 @@ import se.scilifelab.polymerase._
 
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
 
-object PolymeraseEncode extends App {
+trait EncoderApp extends App {
+
+  def preEncoding(data: Iterator[Int]): Iterator[Array[Int]]
+  def encode(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]]
+
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
 
@@ -38,9 +42,9 @@ object PolymeraseEncode extends App {
     LazyList
       .continually(input.read())
       .takeWhile(_ != -1)
-      .map(_.toByte)
       .toIterator
-  val encoded = DNACodec.encode(inputBytes)
+  val encoded =
+    preEncoding(inputBytes).map(block => DNACodec.encode(block))
 
   encoded.zipWithIndex.foreach {
     case (x, i) =>
@@ -51,6 +55,15 @@ object PolymeraseEncode extends App {
   input.close()
   output.flush()
   output.close()
+}
+
+object PolymeraseEncode extends EncoderApp {
+  def preEncoding(data: Iterator[Int]): Iterator[Array[Int]] = {
+    data.grouped(256).map(x => x.toArray)
+  }
+  def encode(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
+    data.map(datum => DNACodec.encode(datum))
+  }
 }
 
 object PolymeraseDecode extends App {
