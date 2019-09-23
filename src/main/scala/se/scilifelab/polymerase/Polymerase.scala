@@ -57,26 +57,40 @@ trait EncoderApp extends App {
   output.close()
 }
 
+trait DecoderApp extends App {
+
+  def preDecode(data: Iterator[String]): Iterator[Nucleotide]
+  def decode(data: Iterator[Nucleotide]): Iterator[Byte]
+
+  val input = Source.fromInputStream(System.in)
+  val lines = input.getLines().filter(s => !s.startsWith(">"))
+  val output = new BufferedOutputStream(System.out)
+
+  val data = decode(preDecode(lines))
+  data.foreach(x => output.write(x))
+
+  input.close()
+  output.flush()
+  output.close()
+}
+
 object PolymeraseEncode extends EncoderApp {
+  lazy val blockSize = 256
   def preEncoding(data: Iterator[Int]): Iterator[Array[Int]] = {
-    data.grouped(256).map(x => x.toArray)
+    data.grouped(blockSize).map(x => x.toArray)
   }
   def encode(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
     data.map(datum => DNACodec.encode(datum))
   }
 }
 
-object PolymeraseDecode extends App {
-  val input = Source.fromInputStream(System.in)
-  val lines = input.getLines().filter(s => !s.startsWith(">"))
-  val output = new BufferedOutputStream(System.out)
-
-  val data = DNACodec.decode(lines.flatten)
-  data.foreach(x => output.write(x))
-
-  input.close()
-  output.flush()
-  output.close()
+object PolymeraseDecode extends DecoderApp {
+  def preDecode(data: Iterator[String]): Iterator[Nucleotide] = {
+    data.flatten
+  }
+  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
+    DNACodec.decode(data)
+  }
 }
 
 object PolymeraseRSEncode extends App {
