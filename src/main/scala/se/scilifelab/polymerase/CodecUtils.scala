@@ -10,7 +10,7 @@ object CodecUtils {
           val index =
             ByteBuffer.allocate(4).putInt(i).array().map(_.toInt)
           val dataLength = x.length + index.length
-          val dataAsBytes = index ++ x
+          val dataAsBytes = (index ++ x).map(_ & 0xff)
           (dataLength +: dataAsBytes).toArray
       }
   }

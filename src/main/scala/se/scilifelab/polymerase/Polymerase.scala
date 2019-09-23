@@ -44,7 +44,7 @@ trait EncoderApp extends App {
       .takeWhile(_ != -1)
       .toIterator
   val encoded =
-    preEncoding(inputBytes).map(block => DNACodec.encode(block))
+    encode(preEncoding(inputBytes))
 
   encoded.zipWithIndex.foreach {
     case (x, i) =>
@@ -86,7 +86,7 @@ object PolymeraseEncode extends EncoderApp {
 
 object PolymeraseDecode extends DecoderApp {
   def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]] = {
-    data.flatten.grouped(PolymeraseEncode.blockSize / 8).map(_.toArray)
+    data.flatten.grouped(PolymeraseEncode.blockSize * 4).map(_.toArray)
   }
   def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
     DNACodec.decodeBlocks(data).flatten
@@ -106,7 +106,7 @@ object PolymeraseRSEncode extends EncoderApp {
 object PolymeraseRSDecode extends DecoderApp {
 
   def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]] = {
-    data.flatten.grouped(ReedSolomonDNACodec.readBlockSize).map(_.toArray)
+    data.map(s => s.toArray)
   }
   def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
     ReedSolomonDNACodec.decode(data)
