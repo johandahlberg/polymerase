@@ -75,21 +75,22 @@ trait DecoderApp extends App {
 }
 
 object PolymeraseEncode extends EncoderApp {
-  lazy val blockSize = 256
+  lazy val blockSize = 128
   def preEncoding(data: Iterator[Int]): Iterator[Array[Int]] = {
     data.grouped(blockSize).map(x => x.toArray)
   }
   def encode(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
-    data.map(datum => DNACodec.encode(datum))
+    DNACodec.encodeBlocks(data)
   }
 }
 
 object PolymeraseDecode extends DecoderApp {
+  //lazy val blockSize = PolymeraseEncode.blockSize + Integer.BYTES * 2
   def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]] = {
-    data.flatten.grouped(PolymeraseEncode.blockSize * 4).map(_.toArray)
+    data.map(_.toArray)
   }
   def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
-    DNACodec.decodeBlocks(data).flatten
+    DNACodec.decodeBlocks(data)
   }
 }
 

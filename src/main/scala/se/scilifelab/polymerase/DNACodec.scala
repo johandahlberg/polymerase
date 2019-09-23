@@ -39,12 +39,8 @@ case object DNACodec {
   }
 
   // TODO Encode that we only accept integers in the range 0 - 255
-  def encodeBlocks(data: Iterator[Array[Int]]): Iterator[Nucleotide] = {
-    for {
-      block <- data
-      int <- block
-      e <- encode(int)
-    } yield e
+  def encodeBlocks(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
+    CodecUtils.createDataBlock(data).map(datum => encode(datum))
   }
 
   def encode(data: Int): Seq[Nucleotide] = {
@@ -68,8 +64,16 @@ case object DNACodec {
     nuc
   }
 
-  def decodeBlocks(data: Iterator[Array[Nucleotide]]): Iterator[Array[Byte]] = {
-    data.map(datum => decode(datum.iterator).toArray)
+  def decodeBlocks(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
+    val decodedBlocks = data
+      .map { datum =>
+        decode(datum.iterator).map(_ & 0xff)
+      }
+      .map { datum =>
+        CodecUtils
+          .deconstructDataBlock(datum.toArray)
+      }
+    CodecUtils.sortIndexAndDataOutput(decodedBlocks)
   }
 
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {

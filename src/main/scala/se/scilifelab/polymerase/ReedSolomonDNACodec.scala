@@ -64,7 +64,7 @@ object ReedSolomonDNACodec {
     // very well. However, for cases where the file is large
     // enough for this to be a problem, it is probably a good idea
     // to use some existing utility to split files before encoding them.
-    indexesAndData.toSeq.sortBy(_._1).map(_._2).flatten.iterator
+    CodecUtils.sortIndexAndDataOutput(indexesAndData)
   }
 
 }

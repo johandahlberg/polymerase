@@ -21,4 +21,10 @@ object CodecUtils {
     val pck = data.drop(5).take(length).map(_.toByte)
     (index, pck)
   }
+
+  def sortIndexAndDataOutput(
+      indexesAndData: Iterator[(Int, Array[Byte])]
+  ): Iterator[Byte] = {
+    indexesAndData.toSeq.sortBy(_._1).map(_._2).flatten.iterator
+  }
 }
