@@ -31,38 +31,35 @@ import se.scilifelab.polymerase._
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
 
 object PolymeraseEncode extends App {
-
-  val psudoRandomGenerator = new Random(9876L)
-
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
-  try {
-    while (true) {
-      val data = input.readByte()
-      val randomizedData = (data ^ psudoRandomGenerator.nextInt()).toByte
-      output.write(DNACodec.encode(randomizedData).toArray)
-    }
-  } catch {
-    case e: EOFException =>
-  } finally {
-    input.close()
-    output.flush()
-    output.close()
+
+  val inputBytes =
+    LazyList
+      .continually(input.read())
+      .takeWhile(_ != -1)
+      .map(_.toByte)
+      .toIterator
+  val encoded = DNACodec.encode(inputBytes)
+
+  encoded.zipWithIndex.foreach {
+    case (x, i) =>
+      output.println(s">dna $i")
+      output.println(x)
   }
+
+  input.close()
+  output.flush()
+  output.close()
 }
 
 object PolymeraseDecode extends App {
-  val input = System.in
-  val output = new DataOutputStream(new BufferedOutputStream(System.out))
+  val input = Source.fromInputStream(System.in)
+  val lines = input.getLines().filter(s => !s.startsWith(">"))
+  val output = new BufferedOutputStream(System.out)
 
-  val psudoRandomGenerator = new Random(9876L)
-
-  for {
-    randomByte <- DNACodec.decode(Source.fromInputStream(input))
-  } {
-    val byte = (randomByte ^ psudoRandomGenerator.nextInt()).toByte
-    output.write(byte)
-  }
+  val data = DNACodec.decode(lines.flatten)
+  data.foreach(x => output.write(x))
 
   input.close()
   output.flush()
@@ -73,6 +70,7 @@ object PolymeraseRSEncode extends App {
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
+
   val inputBytes =
     LazyList
       .continually(input.read())
@@ -80,6 +78,7 @@ object PolymeraseRSEncode extends App {
       .map(_.toByte)
       .toIterator
   val encoded = ReedSolomonDNACodec.encode(inputBytes)
+
   encoded.zipWithIndex.foreach {
     case (x, i) =>
       output.println(s">dna $i")
@@ -107,8 +106,6 @@ object PolymeraseRSDecode extends App {
 }
 
 object PolymeraseSimulateErrors extends App {
-  // TODO Make this read Fasta files
-
   val input = Source.fromInputStream(System.in)
   val lines = input.getLines()
   val output = new PrintWriter(new BufferedOutputStream(System.out))

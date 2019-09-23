@@ -13,7 +13,6 @@ object ErrorSimulator {
     val res =
       for { nuc <- input.toSeq } yield {
         if (addError) {
-          System.err.println("Add error")
           nucleotides.filter(p => p != nuc)(
             randomGenerator.nextInt(nucleotides.size - 1)
           )
