@@ -19,15 +19,8 @@ object ReedSolomonDNACodec {
   //      Or better still, rotate bases as described in X.
 
   def encodeBlock(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
-    val groupedDataWithLength = data.zipWithIndex
-      .map {
-        case (x, i) =>
-          val index =
-            ByteBuffer.allocate(4).putInt(i).array().map(_.toInt)
-          val dataLength = x.length + index.length
-          val dataAsBytes = index ++ x
-          (dataLength +: dataAsBytes).toArray
-      }
+
+    val groupedDataWithLength = CodecUtils.createDataBlock(data)
 
     val rsEncodedData = groupedDataWithLength.map { mess =>
       rsCoder.encode(mess)
@@ -64,12 +57,7 @@ object ReedSolomonDNACodec {
         rsCoder.decode(x.toArray)._1
       }
       .map { res =>
-        // Only pick up the original data, i.e. strip the length of the data block,
-        // and the index.
-        val length = res.head
-        val index = ByteBuffer.wrap(res.tail.take(4).map(_.toByte)).getInt()
-        val data = res.drop(5).take(length).map(_.toByte)
-        (index, data)
+        CodecUtils.deconstructDataBlock(res)
       }
     // This will materialize the entire file in memory,
     // so for very large files this obviously won't work
