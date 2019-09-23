@@ -12,7 +12,8 @@ object ReedSolomonDNACodec {
   private val rsCoder =
     ReedSolomonCoder(n = RSDefaults.dictonarySize, k = RSDefaults.messageSize)
 
-  lazy val blockSize: Int = RSDefaults.dictonarySize - Integer.BYTES * 2
+  lazy val writeBlockSize: Int = RSDefaults.messageSize - (Integer.BYTES * 2)
+  lazy val readBlockSize: Int = RSDefaults.dictonarySize
 
   // TODO Psudo randomize bytes, to avoid monomer stretches.
   //      Or better still, rotate bases as described in X.
@@ -43,7 +44,7 @@ object ReedSolomonDNACodec {
     encodeBlock(
       data
       // Use the integers to encode length and index of message
-        .grouped(RSDefaults.messageSize - Integer.BYTES * 2)
+        .grouped(ReedSolomonDNACodec.writeBlockSize)
         .map(_.map(_ & 0xff).toArray)
     )
 
@@ -56,7 +57,7 @@ object ReedSolomonDNACodec {
     val byteBlocks =
       bytes
         .map(x => x & (0xff))
-        .grouped(RSDefaults.dictonarySize)
+        .grouped(ReedSolomonDNACodec.readBlockSize)
 
     val indexesAndData = byteBlocks
       .map { x =>

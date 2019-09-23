@@ -59,8 +59,8 @@ trait EncoderApp extends App {
 
 trait DecoderApp extends App {
 
-  def preDecode(data: Iterator[String]): Iterator[Nucleotide]
-  def decode(data: Iterator[Nucleotide]): Iterator[Byte]
+  def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]]
+  def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte]
 
   val input = Source.fromInputStream(System.in)
   val lines = input.getLines().filter(s => !s.startsWith(">"))
@@ -85,37 +85,32 @@ object PolymeraseEncode extends EncoderApp {
 }
 
 object PolymeraseDecode extends DecoderApp {
-  def preDecode(data: Iterator[String]): Iterator[Nucleotide] = {
-    data.flatten
+  def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]] = {
+    data.flatten.grouped(PolymeraseEncode.blockSize / 8).map(_.toArray)
   }
-  def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
-    DNACodec.decode(data)
+  def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
+    DNACodec.decodeBlocks(data).flatten
   }
 }
 
 object PolymeraseRSEncode extends EncoderApp {
 
   def preEncoding(data: Iterator[Int]): Iterator[Array[Int]] = {
-    data.grouped(ReedSolomonDNACodec.blockSize).map(_.toArray)
+    data.grouped(ReedSolomonDNACodec.writeBlockSize).map(_.toArray)
   }
   def encode(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
     ReedSolomonDNACodec.encodeBlock(data)
   }
 }
 
-object PolymeraseRSDecode extends App {
+object PolymeraseRSDecode extends DecoderApp {
 
-  val input = Source.fromInputStream(System.in)
-  val lines = input.getLines().filter(s => !s.startsWith(">"))
-  val output = new BufferedOutputStream(System.out)
-
-  val data = ReedSolomonDNACodec.decode(lines.map(x => x.toArray))
-  data.foreach(x => output.write(x))
-
-  input.close()
-  output.flush()
-  output.close()
-
+  def preDecode(data: Iterator[String]): Iterator[Array[Nucleotide]] = {
+    data.flatten.grouped(ReedSolomonDNACodec.readBlockSize).map(_.toArray)
+  }
+  def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
+    ReedSolomonDNACodec.decode(data)
+  }
 }
 
 object PolymeraseSimulateErrors extends App {

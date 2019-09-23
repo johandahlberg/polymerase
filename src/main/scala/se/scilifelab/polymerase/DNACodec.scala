@@ -68,6 +68,10 @@ case object DNACodec {
     nuc
   }
 
+  def decodeBlocks(data: Iterator[Array[Nucleotide]]): Iterator[Array[Byte]] = {
+    data.map(datum => decode(datum.iterator).toArray)
+  }
+
   def decode(data: Iterator[Nucleotide]): Iterator[Byte] = {
 
     def fourBasesToByte(groupOfFourBases: Seq[Nucleotide]): Byte = {
