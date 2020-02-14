@@ -7,11 +7,12 @@ import scala.util.Random
 import org.scalacheck.Gen
 
 import se.scilifelab.reedsolomon.TestUtils
-import org.scalatest.Matchers
+import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import matchers.should.Matchers._
 
 object ReedSolomonPropertySpec
-    extends Properties("ReedSolomon encoders/decoders")
-    with Matchers {
+    extends Properties("ReedSolomon encoders/decoders") {
 
   val nonZeroIntegerArrays =
     Gen.containerOf[Seq, Int](Gen.choose(1, 255))

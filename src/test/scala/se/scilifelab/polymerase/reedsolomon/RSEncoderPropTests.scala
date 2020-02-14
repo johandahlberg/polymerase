@@ -32,4 +32,17 @@ object RSEncoderDecoderSpecification
     a == res
   }
 
+  property(
+    "Encoding and decoding a stream of bytes should return " +
+      "the original byte when there are are errors and duplications of " +
+      "data"
+  ) = forAll(nonEmptyBytes) { a =>
+    val encoded = ReedSolomonDNACodec.encode(a.toIterator).toList
+    val garbled = encoded.map(x => x.updated(x.indexOf('A'), 'T'))
+    val garbledAndDuplicated = garbled ::: garbled
+    require(encoded != garbledAndDuplicated)
+    val res = ReedSolomonDNACodec.decode(garbledAndDuplicated.toIterator).toList
+    a == res
+  }
+
 }

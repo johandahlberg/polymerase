@@ -3,8 +3,11 @@ package se.scilifelab.reedsolomon
 import org.scalatest._
 import scala.annotation.meta.field
 import se.scilifelab.reedsolomon.TestUtils
+import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import matchers.should.Matchers._
 
-class ReedSolomonSpec extends FlatSpec with Matchers {
+class ReedSolomonSpec extends AnyFlatSpec {
 
   "The RSCoder object" should "encode 1" in {
     val rsCoder = ReedSolomonCoder(5, 2)

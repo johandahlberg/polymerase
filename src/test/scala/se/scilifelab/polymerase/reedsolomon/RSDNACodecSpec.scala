@@ -1,8 +1,10 @@
 package se.scilifelab.polymerase
 
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import matchers.should.Matchers._
 
-class ReedSolomonDNACodecSpec extends FlatSpec with Matchers {
+class ReedSolomonDNACodecSpec extends AnyFlatSpec {
 
   "The RSDNACodec" should "encode return empty iterator for empty data" in {
     ReedSolomonDNACodec.encode(List().toIterator) === Iterator.empty

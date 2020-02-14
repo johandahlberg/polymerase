@@ -1,8 +1,10 @@
 package se.scilifelab.reedsolomon
 
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import matchers.should.Matchers._
 
-class PolynomialSpec extends FlatSpec with Matchers {
+class PolynomialSpec extends AnyFlatSpec {
 
   import PolynomialImplicits._
 

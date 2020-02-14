@@ -1,8 +1,10 @@
 package se.scilifelab.reedsolomon
 
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import matchers.should.Matchers._
 
-class FiniteFieldsSpec extends FlatSpec with Matchers {
+class FiniteFieldsSpec extends AnyFlatSpec {
 
   "The finite field" should "be able to create look up tables" in {
 

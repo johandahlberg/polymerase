@@ -1,6 +1,7 @@
 package se.scilifelab.polymerase
 
 import java.nio.ByteBuffer
+import scala.collection.immutable.SortedMap
 
 object CodecUtils {
 
@@ -31,6 +32,10 @@ object CodecUtils {
     // very well. However, for cases where the file is large
     // enough for this to be a problem, it is probably a good idea
     // to use some existing utility to split files before encoding them.
-    indexesAndData.toSeq.sortBy(_._1).map(_._2).flatten.iterator
+
+    // TODO Is there any way that we can know how much data needs to be gathered,
+    //      so that we can quit early here if we have the full data before
+    //      reading all the dataIterator?
+    SortedMap.from(indexesAndData).valuesIterator.flatten
   }
 }

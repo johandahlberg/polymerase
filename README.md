@@ -2,8 +2,10 @@
 
 There is a growing interest in storing digital data as DNA. DNA is interesting as a
 storage medium since not only is it a very dense way of storing data, but it is
-also relatively stable, and easy to copy. These properties make it an intersting
+also relatively stable and easy to copy. These properties make it an intersting
 candidate for long term storage of data.
+
+# Running Polymerase
 
 # TODOs
 

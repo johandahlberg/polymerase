@@ -109,3 +109,17 @@ object PolymeraseSimulateErrors extends App {
   output.flush()
   output.close()
 }
+
+object PolymeraseDropReads extends App {
+  val input = Source.fromInputStream(System.in)
+  val lines = input.getLines()
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
+
+  for { line <- ErrorSimulator.dropRead(lines) } {
+    output.println(line)
+  }
+
+  input.close()
+  output.flush()
+  output.close()
+}
