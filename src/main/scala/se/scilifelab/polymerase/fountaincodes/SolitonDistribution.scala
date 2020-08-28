@@ -1,4 +1,4 @@
-package se.scilifelab.fountaincodes
+package se.scilifelab.polymerase.fountaincodes
 
 import scala.util.Random
 import scala.math.{log, sqrt}

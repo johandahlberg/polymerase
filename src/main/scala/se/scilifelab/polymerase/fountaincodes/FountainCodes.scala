@@ -1,6 +1,21 @@
-package se.scilifelab.fountaincodes
+package se.scilifelab.polymerase.fountaincodes
 
 import scala.util.Random
+import se.scilifelab.polymerase.UnencodedPackage
+import se.scilifelab.polymerase.Package
+import se.scilifelab.polymerase.UnsignedByte
+
+case class FountainCodeEncodedPackage(
+    index: Int,
+    length: Int,
+    data: Array[UnsignedByte]
+) extends Package
+
+case class FountainDecodedPackage(
+    index: Int,
+    length: Int,
+    data: Array[UnsignedByte]
+) extends Package
 
 /**
   * TODO Write docs
@@ -12,7 +27,7 @@ import scala.util.Random
   */
 case class Symbol(
     index: Int,
-    data: Seq[Byte],
+    data: Array[UnsignedByte],
     degree: Int,
     neighbors: Option[Set[Int]] = None
 ) {
@@ -40,16 +55,18 @@ class FountainsCodes(randomSeed: Int = 1234) {
       degree: Int,
       nbrOfBlocks: Int
   ): Seq[Int] = {
-
     val random = new Random(seed = index)
     for (d <- 0 until degree) yield {
       random.between(0, nbrOfBlocks)
     }
   }
 
-  private def xOrByteArrays(x: Seq[Byte], y: Seq[Byte]): Seq[Byte] = {
+  private def xOrByteArrays(
+      x: Array[UnsignedByte],
+      y: Array[UnsignedByte]
+  ): Array[UnsignedByte] = {
     x.zip(y).map {
-      case (xe, ye) => (xe ^ ye).toByte
+      case (xe, ye) => UnsignedByte(xe ^ ye)
     }
   }
 
@@ -59,7 +76,11 @@ class FountainsCodes(randomSeed: Int = 1234) {
     * @param data
     * @return
     */
-  def encode(data: Seq[Seq[Byte]]): Iterator[Symbol] = {
+  def encode(
+      data: Seq[UnencodedPackage]
+  ): Iterator[FountainCodeEncodedPackage] = {
+
+    println("IN ENCODE")
 
     val nbrOfBlocks = data.length
     // TODO Make number of packages to send a parameter, and figure out what is a
@@ -85,12 +106,24 @@ class FountainsCodes(randomSeed: Int = 1234) {
       val indexesToXOr =
         generateIndexPositions(i, degree = degreeOfIndex, nbrOfBlocks).toSet
       val symbolData =
-        indexesToXOr.map(index => data(index)).reduce(xOrByteArrays)
-      Symbol(
+        indexesToXOr
+          .map(index => data(index))
+          .map(_.data)
+          .reduce((x, y) => xOrByteArrays(x, y))
+
+      val symbol = Symbol(
         index = i,
         data = symbolData,
         degree = degreeOfIndex,
         neighbors = Some(indexesToXOr)
+      )
+
+      println(s"SYMBOL: $symbol")
+
+      FountainCodeEncodedPackage(
+        index = symbol.index,
+        length = symbol.data.length,
+        data = symbol.data
       )
     }
 
@@ -105,11 +138,34 @@ class FountainsCodes(randomSeed: Int = 1234) {
     * @param nbrOfBlocks
     * @return
     */
-  private def recoverGraph(symbols: Seq[Symbol], nbrOfBlocks: Int) = {
-    for { symbol <- symbols } yield {
+  private def recoverGraph(
+      packages: Seq[FountainCodeEncodedPackage],
+      nbrOfBlocks: Int
+  ): Seq[Symbol] = {
+
+    // TODO Should it sammple to nbr of blocks of number of packages here?
+    // TODO DRY this later, since it also occurs at encoding
+    val solitonDist = new RobustSoliton(
+      nbrOfBlocks,
+      0.05,
+      nbrOfBlocks / 2 + 1,
+      Some(randomSeed)
+    )
+    val degrees = (1 +: solitonDist.sample(packages.length - 1))
+
+    for { pck <- packages } yield {
       val neighbors =
-        generateIndexPositions(symbol.index, symbol.degree, nbrOfBlocks)
-      symbol.copy(neighbors = Some(neighbors.toSet))
+        generateIndexPositions(
+          index = pck.index,
+          degree = degrees(pck.index),
+          nbrOfBlocks
+        )
+      Symbol(
+        index = pck.index,
+        degree = degrees(pck.index),
+        data = pck.data,
+        neighbors = Some(neighbors.toSet)
+      )
     }
   }
 
@@ -123,9 +179,9 @@ class FountainsCodes(randomSeed: Int = 1234) {
     * @return
     */
   def decode(
-      data: Seq[Symbol],
+      data: Seq[FountainCodeEncodedPackage],
       numberOfBlocks: Int
-  ): (Seq[Seq[Byte]], Int) = {
+  ): (Seq[FountainDecodedPackage], Int) = {
 
     /**
       * IteratorContainer is helper class used to encapsulate the state
@@ -137,7 +193,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
       */
     case class IteratorContainer(
         symbols: Seq[Symbol],
-        blocks: Seq[Seq[Byte]],
+        blocks: Array[Array[UnsignedByte]],
         lastIterationSolvedABlock: Boolean
     )
 
@@ -156,14 +212,14 @@ class FountainsCodes(randomSeed: Int = 1234) {
         symbol: Symbol,
         symbols: Seq[Symbol],
         index: Int,
-        blocks: Seq[Seq[Byte]]
+        blocks: Array[Array[UnsignedByte]]
     ): IteratorContainer = {
       val blockIndex = symbol.neighbors.get.head
       val symbolsWithCurrentSymbolRemoved = symbols.patch(index, Nil, 1)
       val block = blocks(blockIndex)
 
       if (block.isEmpty) {
-        val updatedBlocks =
+        val updatedBlocks: Array[Array[UnsignedByte]] =
           blocks.updated(blockIndex, symbol.data)
         val reducedNeighboursSymbols = reduceNeighbors(
           blockIndex,
@@ -220,19 +276,25 @@ class FountainsCodes(randomSeed: Int = 1234) {
     }
 
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
+    println(s"DATA: $data NBROFBLOCK: $numberOfBlocks")
+    //val symbols = recoverGraph(data, numberOfBlocks)
     val symbols = recoverGraph(data, numberOfBlocks)
 
     val iteratonInitator =
       IteratorContainer(
         symbols,
-        Seq.fill(numberOfBlocks)(Seq.empty[Byte]),
+        Array.fill(numberOfBlocks)(Array.empty[UnsignedByte]),
         true
       )
     val iteratedSymbols = iterateSymbols(iteratonInitator)
     val blocks = iteratedSymbols.blocks
     val nbrOfSolvedBlocks = blocks.filterNot(_.isEmpty).length
+    val decodedPackages = blocks.zipWithIndex.map {
+      case (data, index) =>
+        FountainDecodedPackage(index, data = data, length = data.length)
+    }
 
-    (blocks, nbrOfSolvedBlocks)
+    (decodedPackages, nbrOfSolvedBlocks)
   }
 
   /**
@@ -249,7 +311,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
     */
   private def reduceNeighbors(
       blockIndex: Int,
-      blocks: Seq[Seq[Byte]],
+      blocks: Array[Array[UnsignedByte]],
       symbols: Seq[Symbol]
   ): Seq[Symbol] = {
     symbols
