@@ -5,12 +5,20 @@ import scala.collection.immutable.SortedMap
 
 object CodecUtils {
 
+  def encodeIntAsBytes(int: Int): Array[Byte] = {
+    ByteBuffer.allocate(4).putInt(int).array()
+  }
+
+  def decodeIntFromBytes(bytes: Array[Byte]): Int = {
+    ByteBuffer.wrap(bytes).getInt()
+  }
+
   def createDataBlock(data: Iterator[Array[Int]]): Iterator[Array[Int]] = {
     data.zipWithIndex
       .map {
         case (x, i) =>
           val index =
-            ByteBuffer.allocate(4).putInt(i).array().map(_.toInt)
+            encodeIntAsBytes(i).map(_.toInt)
           val dataLength = x.length + index.length
           val dataAsBytes = (index ++ x).map(_ & 0xff)
           (dataLength +: dataAsBytes).toArray
@@ -19,7 +27,7 @@ object CodecUtils {
 
   def deconstructDataBlock(data: Array[Int]): (Int, Array[Byte]) = {
     val length = data.head
-    val index = ByteBuffer.wrap(data.tail.take(4).map(_.toByte)).getInt()
+    val index = decodeIntFromBytes(data.tail.take(4).map(_.toByte))
     val pck = data.drop(5).take(length).map(_.toByte)
     (index, pck)
   }
