@@ -103,4 +103,24 @@ class FountainCodeSpec extends AnyFlatSpec {
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
   }
+
+  it should "encode and decode input data when data dropper (1)" in {
+
+    val inputData = dataToUnencodedPackages(
+      Seq(
+        Seq(1, 2, 3, 4, 5),
+        Seq(6, 7, 8, 9, 10),
+        Seq(11, 12, 13, 14, 15),
+        Seq(16, 17, 18, 19, 20)
+      )
+    )
+    val codec = new FountainsCodes()
+    val encoded = codec.encode(inputData)
+    val dropped = encoded.toSeq.drop(1)
+    val (decoded, nbrOfBlocksSolved) =
+      codec.decode(dropped.toSeq, inputData.length)
+
+    nbrOfBlocksSolved should be(inputData.length)
+    decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
+  }
 }
