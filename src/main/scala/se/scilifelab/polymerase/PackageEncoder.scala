@@ -4,8 +4,12 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
 
-case class UnencodedPackage(index: Int, length: Int, data: Array[UnsignedByte])
-    extends Package
+case class UnencodedPackage(
+    index: Int,
+    length: Int,
+    blockLength: Int,
+    inputData: Array[UnsignedByte]
+) extends Package {}
 
 trait ByteEncodable[A] {
   def encode(input: A): Iterator[Byte]
@@ -43,7 +47,12 @@ object PackageEncoder {
   ): Iterator[UnencodedPackage] = {
     input.grouped(packageSize).zipWithIndex.map {
       case (data, index) =>
-        UnencodedPackage(index, data.length, data.map(UnsignedByte(_)).toArray)
+        UnencodedPackage(
+          index = index,
+          length = data.length,
+          inputData = data.map(UnsignedByte(_)).toArray,
+          blockLength = packageSize
+        )
     }
   }
 
@@ -52,7 +61,7 @@ object PackageEncoder {
     // Would be better to sort it eventually.
     input.toSeq
       .sortBy(pack => pack.index)
-      .flatMap(pack => pack.data.take(pack.length).map(_.underlyingByte))
+      .flatMap(pack => pack.dataToDecode.map(_.underlyingByte))
       .iterator
   }
 

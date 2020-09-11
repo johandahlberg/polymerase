@@ -8,14 +8,18 @@ import se.scilifelab.polymerase.UnsignedByte
 case class FountainCodeEncodedPackage(
     index: Int,
     length: Int,
-    data: Array[UnsignedByte]
+    inputData: Array[UnsignedByte],
+    blockLength: Int
 ) extends Package
 
 case class FountainDecodedPackage(
     index: Int,
     length: Int,
-    data: Array[UnsignedByte]
-) extends Package
+    inputData: Array[UnsignedByte]
+) extends Package {
+  val data = inputData.take(length)
+  val blockLength: Int = length
+}
 
 /**
   * TODO Write docs
@@ -77,7 +81,8 @@ class FountainsCodes(randomSeed: Int = 1234) {
     * @return
     */
   def encode(
-      data: Seq[UnencodedPackage]
+      data: Seq[UnencodedPackage],
+      blockLength: Int
   ): Iterator[FountainCodeEncodedPackage] = {
 
     println("IN ENCODE")
@@ -108,9 +113,10 @@ class FountainsCodes(randomSeed: Int = 1234) {
       val symbolData =
         indexesToXOr
           .map(index => data(index))
-          .map(_.data)
+          .map(_.dataToEncode)
           .reduce((x, y) => xOrByteArrays(x, y))
 
+      // TODO This step is probably unecessary
       val symbol = Symbol(
         index = i,
         data = symbolData,
@@ -123,7 +129,8 @@ class FountainsCodes(randomSeed: Int = 1234) {
       FountainCodeEncodedPackage(
         index = symbol.index,
         length = symbol.data.length,
-        data = symbol.data
+        inputData = symbol.data,
+        blockLength = blockLength
       )
     }
 
@@ -163,7 +170,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
       Symbol(
         index = pck.index,
         degree = degrees(pck.index),
-        data = pck.data,
+        data = pck.inputData,
         neighbors = Some(neighbors.toSet)
       )
     }
@@ -276,7 +283,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
     }
 
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
-    println(s"DATA: $data NBROFBLOCK: $numberOfBlocks")
+    println(s"DATA PRIOR TO DECODE: $data NBROFBLOCK: $numberOfBlocks")
     //val symbols = recoverGraph(data, numberOfBlocks)
     val symbols = recoverGraph(data, numberOfBlocks)
 
@@ -291,9 +298,10 @@ class FountainsCodes(randomSeed: Int = 1234) {
     val nbrOfSolvedBlocks = blocks.filterNot(_.isEmpty).length
     val decodedPackages = blocks.zipWithIndex.map {
       case (data, index) =>
-        FountainDecodedPackage(index, data = data, length = data.length)
+        FountainDecodedPackage(index, inputData = data, length = data.length)
     }
 
+    println(s"DECODED PACKAGES: ${decodedPackages.toSeq}")
     (decodedPackages, nbrOfSolvedBlocks)
   }
 

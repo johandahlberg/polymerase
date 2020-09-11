@@ -26,11 +26,24 @@ package object polymerase {
   trait Package {
     val index: Int
     val length: Int
-    val data: Array[UnsignedByte]
+    val blockLength: Int
+    val inputData: Array[UnsignedByte]
+
+    def dataToEncode: Array[UnsignedByte] = {
+      inputData.padTo(blockLength, UnsignedByte(0))
+    }
+
+    def dataToDecode: Array[UnsignedByte] = {
+      inputData.take(blockLength)
+    }
 
     def equals(that: Package): Boolean = {
-      this.index == that.index && this.length == that.length && data
-        .sameElements(that.data)
+      this.index == that.index && this.length == that.length && dataToEncode
+        .sameElements(that.dataToEncode)
+    }
+
+    override def toString(): String = {
+      s"Package($index, $length, $blockLength, ${dataToDecode.map(_.intValue).toList})"
     }
   }
 }
