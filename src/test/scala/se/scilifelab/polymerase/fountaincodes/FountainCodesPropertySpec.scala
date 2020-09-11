@@ -6,7 +6,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import org.scalatest._
 import matchers.should.Matchers._
-import se.scilifelab.polymerase.UnencodedPackage
 import org.scalacheck.Arbitrary
 import se.scilifelab.polymerase.UnsignedByte
 
