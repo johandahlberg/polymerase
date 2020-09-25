@@ -12,7 +12,7 @@ class ConsecutiveIterator(input: Iterator[Int]) extends Iterator[Int] {
 
   private var nextElementToOutput = 0
   private val queue = SortedSet[Int]()
-  def hasNext() = input.hasNext || queue.nonEmpty
+  def hasNext = input.hasNext || queue.nonEmpty
 
   def addUntilElementFound(): Boolean = {
     println("Trying to add more from input")

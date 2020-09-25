@@ -98,13 +98,14 @@ class FountainsCodes(randomSeed: Int = 1234) {
           .map(index => data(index))
           .map(_.bytes)
           .reduce((x, y) => xOrByteArrays(x, y))
-
-      Package(
+      val pck = Package(
         inputIndex = i,
-        inputBlockLength = blockLength,
+        inputBlockLength = symbolData.length,
+        dataLength = symbolData.length,
         inputData = symbolData
       )
-
+      println(pck)
+      pck
     }
 
   }
@@ -123,7 +124,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
       nbrOfBlocks: Int
   ): Seq[Symbol] = {
 
-    // TODO Should it sammple to nbr of blocks of number of packages here?
+    // TODO Should it sample to nbr of blocks of number of packages here?
     // TODO DRY this later, since it also occurs at encoding
     val solitonDist = new RobustSoliton(
       nbrOfBlocks,
@@ -160,8 +161,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
     */
   def decode(
       data: Seq[Package],
-      numberOfBlocks: Int,
-      blockLength: Int
+      numberOfBlocks: Int
   ): (Seq[Package], Int) = {
 
     /**
@@ -274,7 +274,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
     //    FountainDecodedPackage(index, inputData = data, length = data.length)
     //}
 
-    val decodedPackages = blocks.map(Package.fromRawBytes(_, blockLength))
+    val decodedPackages = blocks.map(Package.fromRawBytes(_))
 
     println(s"DECODED PACKAGES: ${decodedPackages.toSeq}")
     (decodedPackages, nbrOfSolvedBlocks)

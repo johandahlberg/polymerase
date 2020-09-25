@@ -21,6 +21,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Package(
           inputIndex = index,
           inputBlockLength = blockLength,
+          dataLength = data.length,
           inputData = data.map(UnsignedByte(_)).toArray
         )
     }
@@ -39,7 +40,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
-      codec.decode(encoded.toSeq, inputData.length, blockLength = 5)
+      codec.decode(encoded.toSeq, inputData.length)
 
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
@@ -58,7 +59,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
-      codec.decode(encoded.toSeq, inputData.length, blockLength = 5)
+      codec.decode(encoded.toSeq, inputData.length)
 
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
@@ -78,7 +79,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
-      codec.decode(encoded.toSeq, inputData.length, blockLength = 5)
+      codec.decode(encoded.toSeq, inputData.length)
 
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
@@ -95,7 +96,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
-      codec.decode(encoded.toSeq, inputData.length, blockLength = 5)
+      codec.decode(encoded.toSeq, inputData.length)
 
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
@@ -110,7 +111,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
-      codec.decode(encoded.toSeq, inputData.length, blockLength = 5)
+      codec.decode(encoded.toSeq, inputData.length)
 
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
@@ -131,7 +132,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
-      codec.decode(encoded.toSeq, inputData.length, blockLength = 5)
+      codec.decode(encoded.toSeq, inputData.length)
 
     nbrOfBlocksSolved should be(inputData.length)
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))

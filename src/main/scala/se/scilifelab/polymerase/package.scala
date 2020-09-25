@@ -32,16 +32,24 @@ package object polymerase {
         inputBlockLength: Int,
         inputData: Array[Byte]
     ): Package = {
-      Package(inputIndex, inputBlockLength, inputData.map(UnsignedByte(_)))
+      Package(
+        inputIndex = inputIndex,
+        inputBlockLength = inputBlockLength,
+        dataLength = inputData.length,
+        inputData = inputData.map(UnsignedByte(_))
+      )
     }
 
     def fromRawBytes(
-        inputData: Array[UnsignedByte],
-        inputBlockLength: Int
+        inputData: Array[UnsignedByte]
     ): Package = {
+
+      println(s"inputdata: ${inputData.toSeq.map(_.intValue)}")
+
       Package(
         inputIndex = index(inputData),
-        inputBlockLength = inputBlockLength,
+        inputBlockLength = inputData.drop(dataOffsett).length,
+        dataLength = length(inputData),
         inputData = inputData.drop(dataOffsett)
       )
     }
@@ -56,28 +64,32 @@ package object polymerase {
         bytes.drop(indexOffset).take(intByteLength).map(_.underlyingByte)
       )
 
-    def length(bytes: Array[UnsignedByte]) =
+    def length(bytes: Array[UnsignedByte]) = {
       CodecUtils.decodeIntFromBytes(
         bytes.drop(lengthOffset).take(intByteLength).map(_.underlyingByte)
       )
+    }
 
   }
 
   case class Package(
       private val inputIndex: Int,
       private val inputBlockLength: Int,
+      private val dataLength: Int,
       private val inputData: Array[UnsignedByte]
   ) {
 
     val bytes: Array[UnsignedByte] =
       CodecUtils.encodeIntAsBytes(inputIndex).map(UnsignedByte(_)) ++
-        CodecUtils.encodeIntAsBytes(inputData.length).map(UnsignedByte(_)) ++
+        CodecUtils.encodeIntAsBytes(dataLength).map(UnsignedByte(_)) ++
         inputData.padTo(inputBlockLength, UnsignedByte(0))
 
-    def index = Package.index(bytes)
-    def length = Package.length(bytes)
+    lazy val index = Package.index(bytes)
+    lazy val length = Package.length(bytes)
 
     def data = bytes.drop(Package.dataOffsett).take(length)
+
+    def rawBytes = bytes
 
     def equals(that: Package): Boolean = {
       this.index == that.index && this.length == that.length &&
