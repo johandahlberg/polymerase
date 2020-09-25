@@ -80,11 +80,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
       Some(randomSeed)
     )
 
-    // TODO Check if performance is better when pre-populating this
-    //      or by doing it on the fly.
-    // Adding the one guarantees that there is at least one place to
-    // start decoding from.
-    val degrees = (1 +: solitonDist.sample(nbrOfPackages - 1))
+    val degrees = getDegrees(nbrOfPackages - 1, nbrOfBlocks)
 
     for { i <- Iterator.range(0, nbrOfPackages) } yield {
       val degreeOfIndex = degrees(i)
@@ -107,6 +103,17 @@ class FountainsCodes(randomSeed: Int = 1234) {
 
   }
 
+  private def getDegrees(packagesLength: Int, nbrOfBlocks: Int) = {
+    val solitonDist = new RobustSoliton(
+      nbrOfBlocks,
+      0.05,
+      nbrOfBlocks / 2 + 1,
+      Some(randomSeed)
+    )
+    val degrees = (1 +: solitonDist.sample(packagesLength - 1))
+    degrees
+  }
+
   /**
     * For  set of input symbols, figure out based on their index, which their
     * neighbours should be. This only words of the random number generator
@@ -121,15 +128,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
       nbrOfBlocks: Int
   ): Seq[Symbol] = {
 
-    // TODO Should it sample to nbr of blocks of number of packages here?
-    // TODO DRY this later, since it also occurs at encoding
-    val solitonDist = new RobustSoliton(
-      nbrOfBlocks,
-      0.05,
-      nbrOfBlocks / 2 + 1,
-      Some(randomSeed)
-    )
-    val degrees = (1 +: solitonDist.sample(packages.length - 1))
+    val degrees = getDegrees(packages.length, nbrOfBlocks)
 
     for { pck <- packages } yield {
       val neighbors =
