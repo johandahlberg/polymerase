@@ -68,12 +68,10 @@ class FountainsCodes(randomSeed: Int = 1234) {
       blockLength: Int
   ): Iterator[Package] = {
 
-    println("IN ENCODE")
-
     val nbrOfBlocks = data.length
     // TODO Make number of packages to send a parameter, and figure out what is a
     //      reasonable default number.
-    val nbrOfPackages = (nbrOfBlocks * 2).toInt
+    val nbrOfPackages = (nbrOfBlocks * 3).toInt
 
     val solitonDist = new RobustSoliton(
       nbrOfBlocks,
@@ -104,7 +102,6 @@ class FountainsCodes(randomSeed: Int = 1234) {
         dataLength = symbolData.length,
         inputData = symbolData
       )
-      println(pck)
       pck
     }
 
@@ -257,7 +254,6 @@ class FountainsCodes(randomSeed: Int = 1234) {
     }
 
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
-    println(s"DATA PRIOR TO DECODE: $data NBROFBLOCK: $numberOfBlocks")
     val symbols = recoverGraph(data, numberOfBlocks)
 
     val iteratonInitator =
@@ -269,14 +265,8 @@ class FountainsCodes(randomSeed: Int = 1234) {
     val iteratedSymbols = iterateSymbols(iteratonInitator)
     val blocks = iteratedSymbols.blocks
     val nbrOfSolvedBlocks = blocks.filterNot(_.isEmpty).length
-    //val decodedPackages = blocks.zipWithIndex.map {
-    //  case (data, index) =>
-    //    FountainDecodedPackage(index, inputData = data, length = data.length)
-    //}
-
     val decodedPackages = blocks.map(Package.fromRawBytes(_))
 
-    println(s"DECODED PACKAGES: ${decodedPackages.toSeq}")
     (decodedPackages, nbrOfSolvedBlocks)
   }
 

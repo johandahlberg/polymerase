@@ -43,9 +43,6 @@ package object polymerase {
     def fromRawBytes(
         inputData: Array[UnsignedByte]
     ): Package = {
-
-      println(s"inputdata: ${inputData.toSeq.map(_.intValue)}")
-
       Package(
         inputIndex = index(inputData),
         inputBlockLength = inputData.drop(dataOffsett).length,

@@ -17,7 +17,6 @@ class FountainCodeSpec extends AnyFlatSpec {
     pck.length shouldBe 2
     pck.index shouldBe 0
     pck.data.map(_.intValue) should be(Array(1, 2))
-    println(pck.rawBytes.toSeq.map(_.intValue))
   }
 
   it should "get correcty created from raw bytes" in {
@@ -29,6 +28,5 @@ class FountainCodeSpec extends AnyFlatSpec {
     pck.length shouldBe 2
     pck.index shouldBe 0
     pck.data.map(_.intValue) should be(Array(1, 2))
-    println(pck.rawBytes.toSeq.map(_.intValue))
   }
 }

@@ -128,7 +128,6 @@ class FountainCodeSpec extends AnyFlatSpec {
       ),
       blockLength = 5
     )
-    println(s"INPUTDATA: $inputData")
     val codec = new FountainsCodes()
     val encoded = codec.encode(inputData, blockLength = 5)
     val (decoded, nbrOfBlocksSolved) =
@@ -138,45 +137,61 @@ class FountainCodeSpec extends AnyFlatSpec {
     decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
   }
 
-  //it should "encode and decode input data when data dropped (1)" in {
+  it should "encode and decode input data when data dropped (1)" in {
 
-  //  val inputData = dataToUnencodedPackages(
-  //    Seq(
-  //      Seq(1, 2, 3, 4, 5),
-  //      Seq(6, 7, 8, 9, 10),
-  //      Seq(11, 12, 13, 14, 15),
-  //      Seq(16, 17, 18, 19, 20)
-  //    ),
-  //    blockLength = 5
-  //  )
-  //  val codec = new FountainsCodes()
-  //  val encoded = codec.encode(inputData, blockLength = 5)
-  //  val dropped = encoded.toSeq.drop(1)
-  //  val (decoded, nbrOfBlocksSolved) =
-  //    codec.decode(dropped.toSeq, inputData.length)
+    val inputData = dataToUnencodedPackages(
+      Seq(
+        Seq(1, 2, 3, 4, 5),
+        Seq(6, 7, 8, 9, 10),
+        Seq(11, 12, 13, 14, 15),
+        Seq(16, 17, 18, 19, 20)
+      ),
+      blockLength = 5
+    )
+    val codec = new FountainsCodes()
+    val encoded = codec.encode(inputData, blockLength = 5)
+    val dropped = encoded.toSeq.drop(1)
+    val (decoded, nbrOfBlocksSolved) =
+      codec.decode(dropped.toSeq, inputData.length)
 
-  //  nbrOfBlocksSolved should be(inputData.length)
-  //  decoded.map(_.data.toSeq) should be(inputData.map(_.inputData.toSeq))
-  //}
+    nbrOfBlocksSolved should be(inputData.length)
+    decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
+  }
 
-  //it should "encode and decode input data when data dropped (2)" in {
+  it should "encode and decode input data when data dropped (2)" in {
 
-  //  val inputData = dataToUnencodedPackages(
-  //    Seq(
-  //      Seq(1, 2, 3, 4, 5),
-  //      Seq(6, 7, 8, 9, 10),
-  //      Seq(11, 12, 13, 14, 15),
-  //      Seq(16, 17, 18, 19)
-  //    ),
-  //    blockLength = 5
-  //  )
-  //  val codec = new FountainsCodes()
-  //  val encoded = codec.encode(inputData, blockLength = 5)
-  //  val dropped = encoded.toSeq.drop(1)
-  //  val (decoded, nbrOfBlocksSolved) =
-  //    codec.decode(dropped.toSeq, inputData.length)
+    val inputData = dataToUnencodedPackages(
+      Seq(
+        Seq(1, 2, 3, 4, 5),
+        Seq(6, 7, 8, 9, 10),
+        Seq(11, 12, 13, 14, 15),
+        Seq(16, 17, 18, 19)
+      ),
+      blockLength = 5
+    )
+    val codec = new FountainsCodes()
+    val encoded = codec.encode(inputData, blockLength = 5)
+    val dropped = encoded.toSeq.drop(1)
+    val (decoded, nbrOfBlocksSolved) =
+      codec.decode(dropped.toSeq, inputData.length)
 
-  //  nbrOfBlocksSolved should be(inputData.length)
-  //  decoded.map(_.data.toSeq) should be(inputData.map(_.inputData.toSeq))
-  //}
+    nbrOfBlocksSolved should be(inputData.length)
+    decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
+  }
+
+  it should "encode/devode specific example (7)" in {
+    val inputData = dataToUnencodedPackages(
+      Seq(60, 49, 0, 1, 1, -128, 0, 99, 125, -1, -128, -76, 108, -112, 127, -1,
+        -111, 102, -128, -28, -46, -128, 91).grouped(5).toSeq,
+      5
+    )
+    val codec = new FountainsCodes()
+    val encoded = codec.encode(inputData, blockLength = 5)
+    val dropped = encoded.toSeq.drop(1)
+    val (decoded, nbrOfBlocksSolved) =
+      codec.decode(dropped.toSeq, inputData.length)
+
+    nbrOfBlocksSolved should be(inputData.length)
+    decoded.map(_.data.toSeq) should be(inputData.map(_.data.toSeq))
+  }
 }
