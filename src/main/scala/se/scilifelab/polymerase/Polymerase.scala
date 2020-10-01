@@ -3,11 +3,14 @@ package se.scilifelab.polymerase
 import java.io.DataInputStream
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import java.io.ByteArrayInputStream
 import java.io.PrintWriter
 import scala.io.Source
 
 import se.scilifelab.polymerase._
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
+import se.scilifelab.polymerase.fountaincodes.FountainsCodes
+import java.nio.charset.StandardCharsets
 
 trait EncoderApp extends App {
 
@@ -90,6 +93,54 @@ object PolymeraseRSDecode extends DecoderApp {
   def decode(data: Iterator[Array[Nucleotide]]): Iterator[Byte] = {
     ReedSolomonDNACodec.decode(data)
   }
+}
+
+object PolymeraseFountainEncode extends App {
+
+  val codec = new FountainsCodes(packageMultiplicationFactor = 100)
+
+  val input = new DataInputStream(new BufferedInputStream(System.in))
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
+
+  val iterator =
+    LazyList.continually(input.read().toByte).takeWhile(_ != -1).iterator
+  val pcks = PackageEncoder.encode(iterator, 128)
+
+  val encodedPcks = codec.encode(pcks.toSeq, 128)
+
+  val dnaEncoded = DNACodec.encodeBlocks(
+    encodedPcks.map(_.bytes.map(_.intValue))
+  )
+  dnaEncoded.zipWithIndex.foreach {
+    case (x, i) =>
+      output.println(s">dna $i")
+      output.println(x)
+  }
+
+  input.close()
+  output.flush()
+  output.close()
+
+}
+
+object PolymeraseFountainDecode extends App {
+
+  val input = Source.fromInputStream(System.in)
+  val lines = input.getLines().filter(s => !s.startsWith(">"))
+  val output = new BufferedOutputStream(System.out)
+
+  val dnaDecodedData = DNACodec.decodeBlocks(lines.map(_.toArray))
+
+  val fountainCodec = new FountainsCodes()
+  val pcks = PackageEncoder.encode(dnaDecodedData, 128)
+  val (decodedPackages, _) = fountainCodec.decode(pcks.toSeq, 1000000)
+
+  decodedPackages.foreach(pck => output.write(pck.bytes.map(_.underlyingByte)))
+
+  input.close()
+  output.flush()
+  output.close()
+
 }
 
 object PolymeraseSimulateErrors extends App {

@@ -27,7 +27,10 @@ case class Symbol(
   *
   * @param randomSeed
   */
-class FountainsCodes(randomSeed: Int = 1234) {
+class FountainsCodes(
+    randomSeed: Int = 1234,
+    packageMultiplicationFactor: Int = 3
+) {
 
   /**
     * Generate degree indexes, between 0 and nbrOfBlocks
@@ -71,7 +74,7 @@ class FountainsCodes(randomSeed: Int = 1234) {
     val nbrOfBlocks = data.length
     // TODO Make number of packages to send a parameter, and figure out what is a
     //      reasonable default number.
-    val nbrOfPackages = (nbrOfBlocks * 3).toInt
+    val nbrOfPackages = (nbrOfBlocks * packageMultiplicationFactor).toInt
 
     val solitonDist = new RobustSoliton(
       nbrOfBlocks,
