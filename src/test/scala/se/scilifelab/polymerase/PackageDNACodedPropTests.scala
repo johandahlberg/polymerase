@@ -19,7 +19,7 @@ class FountainCodesPropertySpec
   // good here.
   import org.scalacheck.Shrink.shrinkAny
 
-  val blockLength = 5
+  val blockLength = 10
   val dataPackages = Gen
     .nonEmptyListOf(Arbitrary.arbitrary[Byte])
     .map(TestUtils.createUnencodedDataPackage(_, blockLength))
