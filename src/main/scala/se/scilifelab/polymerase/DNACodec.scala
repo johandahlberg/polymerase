@@ -107,3 +107,78 @@ case object DNACodec {
     charset.decode(ByteBuffer.wrap(byteDecoded.toArray)).toString()
   }
 }
+
+case object PackageDNACodec {
+
+  val charset = Charset.forName("UTF-8")
+
+  private val decodingTable: Map[Nucleotide, String] =
+    Map('G' -> "00", 'A' -> "01", 'T' -> "10", 'C' -> "11")
+  private val encodingTable = decodingTable.map { case (k, v) => (v, k) }
+  private val encodeCache =
+    new collection.mutable.WeakHashMap[UnsignedByte, Seq[Nucleotide]]
+  private val decodeCache =
+    new collection.mutable.WeakHashMap[String, UnsignedByte]
+
+  private def groupString(str: String, len: Int): Seq[String] = {
+    for (p <- 0 until str.length() by len)
+      yield str.substring(p, p + len)
+  }
+
+  private def byteToBinaryString(byte: UnsignedByte): String = {
+    String
+      .format("%8s", Integer.toBinaryString(byte.intValue))
+      .replace(' ', '0')
+  }
+
+  private def encodeBinaryString(binaryStringData: String): Seq[Nucleotide] = {
+    val nuc = groupString(binaryStringData, 2).map { bits =>
+      encodingTable.getOrElse(bits, {
+        throw new NoSuchElementException(
+          f"There was a problem encoding bit, bits: ${bits.mkString}"
+        )
+      })
+    }
+    nuc
+  }
+
+  def encode(data: Iterator[Package]): Iterator[Array[Nucleotide]] = {
+    data.map(
+      datum =>
+        datum.bytes.flatMap(
+          byte => encodeBinaryString(byteToBinaryString(byte))
+        )
+    )
+  }
+
+  def decode(data: Iterator[Array[Nucleotide]]): Iterator[Package] = {
+    data.map(datum => Package.fromRawBytes(decode(datum)))
+  }
+
+  def decode(data: Array[Nucleotide]): Array[UnsignedByte] = {
+
+    def fourBasesToByte(groupOfFourBases: Seq[Nucleotide]): UnsignedByte = {
+
+      val byteAsBinaryString = groupOfFourBases.map { base =>
+        decodingTable.getOrElse(base, {
+          throw new NoSuchElementException(
+            f"There was a problem decoding base: ${base}. Perhaps this is not a DNA Sequence?"
+          )
+        })
+      }.mkString
+      val resultingByte = JavaShort.parseShort(byteAsBinaryString, 2).toByte
+
+      decodeCache.update(groupOfFourBases.mkString, UnsignedByte(resultingByte))
+      UnsignedByte(resultingByte)
+    }
+
+    data
+      .grouped(4)
+      .map { groupOfFourBases =>
+        decodeCache.getOrElse(groupOfFourBases.mkString, {
+          fourBasesToByte(groupOfFourBases)
+        })
+      }
+      .toArray
+  }
+}
