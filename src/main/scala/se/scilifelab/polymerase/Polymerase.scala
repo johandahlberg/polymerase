@@ -97,20 +97,22 @@ object PolymeraseRSDecode extends DecoderApp {
 
 object PolymeraseFountainEncode extends App {
 
-  val codec = new FountainsCodes(packageMultiplicationFactor = 100)
+  val codec = new FountainsCodes(packageMultiplicationFactor = 3)
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
 
   val iterator =
     LazyList.continually(input.read().toByte).takeWhile(_ != -1).iterator
-  val pcks = PackageEncoder.encode(iterator, 128)
+  val pcksIterator = PackageEncoder.encode(iterator, 128)
+  val pcks = pcksIterator.toSeq
+  pcks.foreach(pck => System.err.println(s"ENCODE: $pcks"))
 
-  val encodedPcks = codec.encode(pcks.toSeq, 128)
+  val encodedPcks = codec.encode(pcks, 128).toSeq
+  encodedPcks.foreach(pck => System.err.println(s"ENCODE FOUNTAIN: $pcks"))
 
-  val dnaEncoded = DNACodec.encodeBlocks(
-    encodedPcks.map(_.bytes.map(_.intValue))
-  )
+  val dnaEncoded = PackageDNACodec.encode(encodedPcks.iterator)
+
   dnaEncoded.zipWithIndex.foreach {
     case (x, i) =>
       output.println(s">dna $i")
@@ -129,13 +131,25 @@ object PolymeraseFountainDecode extends App {
   val lines = input.getLines().filter(s => !s.startsWith(">"))
   val output = new BufferedOutputStream(System.out)
 
-  val dnaDecodedData = DNACodec.decodeBlocks(lines.map(_.toArray))
+  val dnaDecodedPackages = lines
+    .map(_.toArray)
+    .map(PackageDNACodec.decode(_))
+    .map { pck =>
+      System.err.println(pck.toSeq.map(_.intValue))
+      val out = Package.fromRawBytes(pck)
+      System.err.println(out)
+      out
+    }
 
   val fountainCodec = new FountainsCodes()
-  val pcks = PackageEncoder.encode(dnaDecodedData, 128)
-  val (decodedPackages, _) = fountainCodec.decode(pcks.toSeq, 1000000)
+  // TODO Do we need to know beforehand how many packages to decode?
+  // And if so how do we deal with that?
+  val (decodedPackages, nbrOfPackagesDecoded) =
+    fountainCodec.decode(dnaDecodedPackages.toSeq, 10)
 
-  decodedPackages.foreach(pck => output.write(pck.bytes.map(_.underlyingByte)))
+  decodedPackages
+    .take(nbrOfPackagesDecoded)
+    .foreach(pck => output.write(pck.data.map(_.underlyingByte)))
 
   input.close()
   output.flush()

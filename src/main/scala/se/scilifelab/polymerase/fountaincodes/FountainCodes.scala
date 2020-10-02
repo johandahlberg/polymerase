@@ -267,7 +267,19 @@ class FountainsCodes(
     val iteratedSymbols = iterateSymbols(iteratonInitator)
     val blocks = iteratedSymbols.blocks
     val nbrOfSolvedBlocks = blocks.filterNot(_.isEmpty).length
-    val decodedPackages = blocks.map(Package.fromRawBytes(_))
+    System.err.println(s"Number of solved blocks: $nbrOfSolvedBlocks")
+    val decodedPackages = blocks.takeWhile(!_.isEmpty).map { block =>
+      System.err.println(
+        s"Block: $block, array: ${block.toSeq.map(_.intValue)}"
+      )
+      val pck = Package.fromRawBytes(block)
+
+      System.err.println(
+        s"Package: $pck"
+      )
+      pck
+
+    }
 
     (decodedPackages, nbrOfSolvedBlocks)
   }
