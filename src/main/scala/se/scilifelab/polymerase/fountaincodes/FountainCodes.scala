@@ -3,6 +3,7 @@ package se.scilifelab.polymerase.fountaincodes
 import scala.util.Random
 import se.scilifelab.polymerase.Package
 import se.scilifelab.polymerase.UnsignedByte
+import scala.collection.immutable.SortedMap
 
 /**
   * TODO Write docs
@@ -173,7 +174,7 @@ class FountainsCodes(
       */
     case class IteratorContainer(
         symbols: Seq[Symbol],
-        blocks: Array[Array[UnsignedByte]],
+        blocks: SortedMap[Int, Array[UnsignedByte]],
         lastIterationSolvedABlock: Boolean
     )
 
@@ -192,14 +193,14 @@ class FountainsCodes(
         symbol: Symbol,
         symbols: Seq[Symbol],
         index: Int,
-        blocks: Array[Array[UnsignedByte]]
+        blocks: SortedMap[Int, Array[UnsignedByte]]
     ): IteratorContainer = {
       val blockIndex = symbol.neighbors.get.head
       val symbolsWithCurrentSymbolRemoved = symbols.patch(index, Nil, 1)
-      val block = blocks(blockIndex)
+      val block = blocks.getOrElse(blockIndex, Array[UnsignedByte]())
 
       if (block.isEmpty) {
-        val updatedBlocks: Array[Array[UnsignedByte]] =
+        val updatedBlocks =
           blocks.updated(blockIndex, symbol.data)
         val reducedNeighboursSymbols = reduceNeighbors(
           blockIndex,
@@ -261,27 +262,18 @@ class FountainsCodes(
     val iteratonInitator =
       IteratorContainer(
         symbols,
-        Array.fill(numberOfBlocks)(Array.empty[UnsignedByte]),
+        SortedMap.empty,
         true
       )
     val iteratedSymbols = iterateSymbols(iteratonInitator)
     val blocks = iteratedSymbols.blocks
-    val nbrOfSolvedBlocks = blocks.filterNot(_.isEmpty).length
-    System.err.println(s"Number of solved blocks: $nbrOfSolvedBlocks")
-    val decodedPackages = blocks.takeWhile(!_.isEmpty).map { block =>
-      System.err.println(
-        s"Block: $block, array: ${block.toSeq.map(_.intValue)}"
-      )
-      val pck = Package.fromRawBytes(block)
 
-      System.err.println(
-        s"Package: $pck"
-      )
-      pck
-
+    val nbrOfSolvedBlocks = blocks.size
+    val decodedPackages = blocks.values.map { block =>
+      Package.fromRawBytes(block)
     }
 
-    (decodedPackages, nbrOfSolvedBlocks)
+    (decodedPackages.toSeq, nbrOfSolvedBlocks)
   }
 
   /**
@@ -298,7 +290,7 @@ class FountainsCodes(
     */
   private def reduceNeighbors(
       blockIndex: Int,
-      blocks: Array[Array[UnsignedByte]],
+      blocks: Map[Int, Array[UnsignedByte]],
       symbols: Seq[Symbol]
   ): Seq[Symbol] = {
     symbols

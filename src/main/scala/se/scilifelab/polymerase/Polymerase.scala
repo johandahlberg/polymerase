@@ -135,17 +135,12 @@ object PolymeraseFountainDecode extends App {
     .map(_.toArray)
     .map(PackageDNACodec.decode(_))
     .map { pck =>
-      System.err.println(pck.toSeq.map(_.intValue))
-      val out = Package.fromRawBytes(pck)
-      System.err.println(out)
-      out
+      Package.fromRawBytes(pck)
     }
 
   val fountainCodec = new FountainsCodes()
-  // TODO Do we need to know beforehand how many packages to decode?
-  // And if so how do we deal with that?
   val (decodedPackages, nbrOfPackagesDecoded) =
-    fountainCodec.decode(dnaDecodedPackages.toSeq, 10)
+    fountainCodec.decode(dnaDecodedPackages.toSeq, Int.MaxValue)
 
   decodedPackages
     .take(nbrOfPackagesDecoded)
