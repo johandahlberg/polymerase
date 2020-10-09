@@ -29,11 +29,11 @@ class PackageDNAFountainCodesPropertySpec
     forAll(dataPackages) { unencoded =>
       {
         val codec = new FountainsCodes()
-        val fountainEncoded = codec.encode(unencoded, blockLength)
+        val fountainEncoded = codec.encode(unencoded)
         val dnaEncoded = PackageDNACodec.encode(fountainEncoded)
         val dnaDecoded = PackageDNACodec.decode(dnaEncoded)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(dnaDecoded.toSeq, unencoded.length)
+          codec.decode(dnaDecoded, unencoded.length)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)
@@ -46,12 +46,12 @@ class PackageDNAFountainCodesPropertySpec
       {
 
         val codec = new FountainsCodes()
-        val fountainEncoded = codec.encode(unencoded, blockLength)
+        val fountainEncoded = codec.encode(unencoded)
         val dnaEncoded = PackageDNACodec.encode(fountainEncoded)
         val dropped = dnaEncoded.toSeq.drop(1)
         val dnaDecoded = PackageDNACodec.decode(dropped.iterator)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(dnaDecoded.toSeq, unencoded.length)
+          codec.decode(dnaDecoded, unencoded.length)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)

@@ -30,7 +30,7 @@ case class Symbol(
   */
 class FountainsCodes(
     randomSeed: Int = 1234,
-    packageMultiplicationFactor: Int = 3
+    packageMultiplicationFactor: Double = 3.0
 ) {
 
   /**
@@ -67,24 +67,12 @@ class FountainsCodes(
     * @param data
     * @return
     */
-  def encode(
-      data: Seq[Package],
-      blockLength: Int
-  ): Iterator[Package] = {
+  def encode(data: Seq[Package]): Iterator[Package] = {
 
     val nbrOfBlocks = data.length
-    // TODO Make number of packages to send a parameter, and figure out what is a
-    //      reasonable default number.
     val nbrOfPackages = (nbrOfBlocks * packageMultiplicationFactor).toInt
 
-    val solitonDist = new RobustSoliton(
-      nbrOfBlocks,
-      0.05,
-      nbrOfBlocks / 2 + 1,
-      Some(randomSeed)
-    )
-
-    val degrees = getDegrees(nbrOfPackages - 1, nbrOfBlocks)
+    val degrees = getDegrees(nbrOfBlocks)
 
     for { i <- Iterator.range(0, nbrOfPackages) } yield {
       val degreeOfIndex = degrees(i)
@@ -107,15 +95,16 @@ class FountainsCodes(
 
   }
 
-  private def getDegrees(packagesLength: Int, nbrOfBlocks: Int) = {
+  private def getDegrees(
+      nbrOfBlocks: Int
+  ): LazyList[Int] = {
     val solitonDist = new RobustSoliton(
       nbrOfBlocks,
       0.05,
       nbrOfBlocks / 2 + 1,
       Some(randomSeed)
     )
-    val degrees = (1 +: solitonDist.sample(packagesLength - 1))
-    degrees
+    1 #:: solitonDist.sample(Int.MaxValue - 1)
   }
 
   /**
@@ -128,11 +117,14 @@ class FountainsCodes(
     * @return
     */
   private def recoverGraph(
-      packages: Seq[Package],
+      packages: Iterator[Package],
       nbrOfBlocks: Int
-  ): Seq[Symbol] = {
+  ): Iterator[Symbol] = {
 
-    val degrees = getDegrees(packages.length, nbrOfBlocks)
+    // TODO Figure out a way to only sample degress up to the necessary
+    // index, to allow lazy number of blocks.
+    // One way to do it might be to use a stream.
+    val degrees = getDegrees(nbrOfBlocks)
 
     for { pck <- packages } yield {
       val neighbors =
@@ -160,7 +152,7 @@ class FountainsCodes(
     * @return
     */
   def decode(
-      data: Seq[Package],
+      data: Iterator[Package],
       numberOfBlocks: Int
   ): (Seq[Package], Int) = {
 
@@ -257,7 +249,7 @@ class FountainsCodes(
     }
 
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
-    val symbols = recoverGraph(data, numberOfBlocks)
+    val symbols = recoverGraph(data, numberOfBlocks).toSeq
 
     val iteratonInitator =
       IteratorContainer(

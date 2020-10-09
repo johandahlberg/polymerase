@@ -108,7 +108,7 @@ object PolymeraseFountainEncode extends App {
   val pcks = pcksIterator.toSeq
   pcks.foreach(pck => System.err.println(s"ENCODE: $pcks"))
 
-  val encodedPcks = codec.encode(pcks, 128).toSeq
+  val encodedPcks = codec.encode(pcks).toSeq
   encodedPcks.foreach(pck => System.err.println(s"ENCODE FOUNTAIN: $pcks"))
 
   val dnaEncoded = PackageDNACodec.encode(encodedPcks.iterator)
@@ -132,15 +132,14 @@ object PolymeraseFountainDecode extends App {
   val output = new BufferedOutputStream(System.out)
 
   val dnaDecodedPackages = lines
-    .map(_.toArray)
-    .map(PackageDNACodec.decode(_))
+    .map(line => PackageDNACodec.decode(line.toArray))
     .map { pck =>
       Package.fromRawBytes(pck)
     }
 
   val fountainCodec = new FountainsCodes()
   val (decodedPackages, nbrOfPackagesDecoded) =
-    fountainCodec.decode(dnaDecodedPackages.toSeq, Int.MaxValue)
+    fountainCodec.decode(dnaDecodedPackages, Int.MaxValue)
 
   decodedPackages
     .take(nbrOfPackagesDecoded)

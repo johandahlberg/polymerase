@@ -91,8 +91,8 @@ class RobustSoliton(
     sampleFromDist(random.nextDouble())
   }
 
-  def sample(n: Int): Seq[Int] = {
-    (0 to n).map(_ => next())
+  def sample(n: Int): LazyList[Int] = {
+    LazyList.from(0 to n).map(_ => next())
   }
 }
 

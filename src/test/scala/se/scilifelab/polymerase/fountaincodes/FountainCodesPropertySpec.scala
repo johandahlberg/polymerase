@@ -28,9 +28,9 @@ class FountainCodesPropertySpec
     forAll(dataPackages) { unencoded =>
       {
         val codec = new FountainsCodes()
-        val encoded = codec.encode(unencoded, 5)
+        val encoded = codec.encode(unencoded)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(encoded.toSeq, unencoded.length)
+          codec.decode(encoded, unencoded.length)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)
@@ -42,10 +42,10 @@ class FountainCodesPropertySpec
     forAll(dataPackages) { unencoded =>
       {
         val codec = new FountainsCodes()
-        val encoded = codec.encode(unencoded, 5)
+        val encoded = codec.encode(unencoded)
         val dropped = encoded.toSeq.drop(1)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(dropped.toSeq, unencoded.length)
+          codec.decode(dropped.iterator, unencoded.length)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)
