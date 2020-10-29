@@ -4,6 +4,7 @@ import scala.util.Random
 import se.scilifelab.polymerase.Package
 import se.scilifelab.polymerase.UnsignedByte
 import scala.collection.immutable.SortedMap
+import scala.collection.immutable.SortedSet
 
 /**
   * TODO Write docs
@@ -45,11 +46,11 @@ class FountainsCodes(
       index: Int,
       degree: Int,
       nbrOfBlocks: Int
-  ): Seq[Int] = {
+  ): LazyList[Int] = {
     val random = new Random(seed = index)
-    for (d <- 0 until degree) yield {
-      random.between(0, nbrOfBlocks)
-    }
+    LazyList.from(
+      (0 until degree).view.map(_ => random.between(0, nbrOfBlocks))
+    )
   }
 
   private def xOrByteArrays(
@@ -86,6 +87,7 @@ class FountainsCodes(
           .reduce((x, y) => xOrByteArrays(x, y))
       val pck = Package(
         inputIndex = i,
+        inputTotalNumberOfBlocks = nbrOfBlocks,
         inputBlockLength = symbolData.length,
         dataLength = symbolData.length,
         inputData = symbolData
@@ -104,6 +106,7 @@ class FountainsCodes(
       nbrOfBlocks / 2 + 1,
       Some(randomSeed)
     )
+    // Sammple as many degress as is needed.
     1 #:: solitonDist.sample(Int.MaxValue - 1)
   }
 
@@ -248,8 +251,10 @@ class FountainsCodes(
 
     }
 
+    val (dataIterator, countIterator) = data.duplicate
+    val nbrOfBlocksGuess = numberOfBlocks //countIterator.map(_.index).max
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
-    val symbols = recoverGraph(data, numberOfBlocks).toSeq
+    val symbols = recoverGraph(dataIterator, nbrOfBlocksGuess).toSeq
 
     val iteratonInitator =
       IteratorContainer(
@@ -260,12 +265,16 @@ class FountainsCodes(
     val iteratedSymbols = iterateSymbols(iteratonInitator)
     val blocks = iteratedSymbols.blocks
 
-    val nbrOfSolvedBlocks = blocks.size
-    val decodedPackages = blocks.values.map { block =>
-      Package.fromRawBytes(block)
-    }
+    val decodedPackages = blocks.values
+      .map { block =>
+        Package.fromRawBytes(block)
+      }
 
-    (decodedPackages.toSeq, nbrOfSolvedBlocks)
+    // Deduplicate packages
+    val distinctPackages = SortedSet.from(decodedPackages).toSeq
+    val nbrOfSolvedBlocks = distinctPackages.size
+
+    (distinctPackages, nbrOfSolvedBlocks)
   }
 
   /**

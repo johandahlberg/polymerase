@@ -8,6 +8,7 @@ object TestUtils {
       data: List[Byte],
       blockLength: Int
   ): Seq[Package] = {
+    val numberOfBlocks = (data.size.toDouble / blockLength).ceil.toInt
     data
       .grouped(blockLength)
       .zipWithIndex
@@ -15,6 +16,7 @@ object TestUtils {
         case (data, index) =>
           Package.fromBytes(
             inputIndex = index,
+            inputTotalNumberOfBlocks = numberOfBlocks,
             inputBlockLength = blockLength,
             inputData = data.toArray
           )

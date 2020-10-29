@@ -29,11 +29,13 @@ package object polymerase {
 
     def fromBytes(
         inputIndex: Int,
+        inputTotalNumberOfBlocks: Int,
         inputBlockLength: Int,
         inputData: Array[Byte]
     ): Package = {
       Package(
         inputIndex = inputIndex,
+        inputTotalNumberOfBlocks = inputTotalNumberOfBlocks,
         inputBlockLength = inputBlockLength,
         dataLength = inputData.length,
         inputData = inputData.map(UnsignedByte(_))
@@ -45,6 +47,7 @@ package object polymerase {
     ): Package = {
       Package(
         inputIndex = index(inputData),
+        inputTotalNumberOfBlocks = totalNumberOfBlocks(inputData),
         inputBlockLength = inputData.drop(dataOffsett).length,
         dataLength = length(inputData),
         inputData = inputData.drop(dataOffsett)
@@ -52,9 +55,10 @@ package object polymerase {
     }
 
     val intByteLength = 4
-    private val indexOffset = 0 * intByteLength
-    private val lengthOffset = 1 * intByteLength
-    private val dataOffsett = 2 * intByteLength
+    private val numberOfBlocksOfSet = 0 * intByteLength
+    private val indexOffset = 1 * intByteLength
+    private val lengthOffset = 2 * intByteLength
+    private val dataOffsett = 3 * intByteLength
 
     def index(bytes: Array[UnsignedByte]) =
       CodecUtils.decodeIntFromBytes(
@@ -66,23 +70,36 @@ package object polymerase {
         bytes.drop(lengthOffset).take(intByteLength).map(_.underlyingByte)
       )
     }
-
+    def totalNumberOfBlocks(bytes: Array[UnsignedByte]) = {
+      CodecUtils
+        .decodeIntFromBytes(
+          bytes
+            .drop(numberOfBlocksOfSet)
+            .take(intByteLength)
+            .map(_.underlyingByte)
+        )
+    }
   }
 
   case class Package(
       private val inputIndex: Int,
       private val inputBlockLength: Int,
+      private val inputTotalNumberOfBlocks: Int,
       private val dataLength: Int,
       private val inputData: Array[UnsignedByte]
-  ) {
+  ) extends Ordered[Package] {
 
     val bytes: Array[UnsignedByte] =
-      CodecUtils.encodeIntAsBytes(inputIndex).map(UnsignedByte(_)) ++
+      CodecUtils
+        .encodeIntAsBytes(inputTotalNumberOfBlocks)
+        .map(UnsignedByte(_)) ++
+        CodecUtils.encodeIntAsBytes(inputIndex).map(UnsignedByte(_)) ++
         CodecUtils.encodeIntAsBytes(dataLength).map(UnsignedByte(_)) ++
         inputData.padTo(inputBlockLength, UnsignedByte(0))
 
     lazy val index = Package.index(bytes)
     lazy val length = Package.length(bytes)
+    lazy val totalNumberOfBlocks = Package.totalNumberOfBlocks(bytes)
 
     def data = bytes.drop(Package.dataOffsett).take(length)
 
@@ -94,9 +111,11 @@ package object polymerase {
     }
 
     override def toString(): String = {
-      s"Package(index=$index, length=$length," +
+      s"Package(totalNumberOfBlocks=$totalNumberOfBlocks, index=$index, length=$length," +
         s"data=${data.map(_.intValue).toSeq})"
     }
+
+    def compare(that: Package): Int = this.index.compare(that.index)
 
   }
 

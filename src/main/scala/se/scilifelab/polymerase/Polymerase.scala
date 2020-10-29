@@ -103,13 +103,19 @@ object PolymeraseFountainEncode extends App {
   val output = new PrintWriter(new BufferedOutputStream(System.out))
 
   val iterator =
-    LazyList.continually(input.read().toByte).takeWhile(_ != -1).iterator
+    LazyList
+      .continually(input.read())
+      .takeWhile {
+        _ != -1
+      }
+      .map(_.toByte)
+      .iterator
   val pcksIterator = PackageEncoder.encode(iterator, 128)
   val pcks = pcksIterator.toSeq
-  pcks.foreach(pck => System.err.println(s"ENCODE: $pcks"))
+  ///pcks.foreach(pck => System.err.println(s"ENCODE: $pcks"))
 
   val encodedPcks = codec.encode(pcks).toSeq
-  encodedPcks.foreach(pck => System.err.println(s"ENCODE FOUNTAIN: $pcks"))
+  //encodedPcks.foreach(pck => System.err.println(s"ENCODE FOUNTAIN: $pcks"))
 
   val dnaEncoded = PackageDNACodec.encode(encodedPcks.iterator)
 
@@ -138,6 +144,7 @@ object PolymeraseFountainDecode extends App {
     }
 
   val fountainCodec = new FountainsCodes()
+  // TODO Using Int.MaxValue here is probably not correct.
   val (decodedPackages, nbrOfPackagesDecoded) =
     fountainCodec.decode(dnaDecodedPackages, Int.MaxValue)
 

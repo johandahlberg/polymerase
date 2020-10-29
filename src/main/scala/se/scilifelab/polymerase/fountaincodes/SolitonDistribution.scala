@@ -35,7 +35,7 @@ class RobustSoliton(
   }
 
   private val R: Double = c * log(k.toDouble / sigma) * sqrt(k)
-  private val beta = (1 to k).map(i => rho(i) + theta(i)).sum
+  private val beta = (1 to k).view.map(i => rho(i) + theta(i)).sum
 
   private def rho(i: Int): Double = idealSoliton(i)
   private def theta(i: Int): Double = {

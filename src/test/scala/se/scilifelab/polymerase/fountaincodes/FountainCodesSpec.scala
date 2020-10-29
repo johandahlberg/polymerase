@@ -14,12 +14,14 @@ class FountainCodeSpec extends AnyFlatSpec {
 
   def dataToUnencodedPackages(
       data: Seq[Seq[Int]],
+      nbrOfBlocks: Int,
       blockLength: Int
   ): Seq[Package] = {
     data.zipWithIndex.map {
       case (data, index) =>
         Package(
           inputIndex = index,
+          inputTotalNumberOfBlocks = nbrOfBlocks,
           inputBlockLength = blockLength,
           dataLength = data.length,
           inputData = data.map(UnsignedByte(_)).toArray
@@ -35,6 +37,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Seq(6, 7, 8, 9, 10),
         Seq(11, 12, 13, 14, 15)
       ),
+      nbrOfBlocks = 3,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -54,6 +57,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Seq(1, 2, 3, 4, 5),
         Seq(6, 7, 8, 9, 10)
       ),
+      nbrOfBlocks = 2,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -74,6 +78,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Seq(11, 12, 13, 14, 15),
         Seq(16, 17, 18, 19, 20)
       ),
+      nbrOfBlocks = 4,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -91,6 +96,7 @@ class FountainCodeSpec extends AnyFlatSpec {
       Seq(
         Seq(1, 2, 3, 4, 5)
       ),
+      nbrOfBlocks = 1,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -106,6 +112,7 @@ class FountainCodeSpec extends AnyFlatSpec {
 
     val inputData = dataToUnencodedPackages(
       Seq.fill(5)(Seq.fill(5)(0)),
+      nbrOfBlocks = 5,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -126,6 +133,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Seq(11, 12, 13, 14, 15),
         Seq(16, 17, 18, 19)
       ),
+      nbrOfBlocks = 4,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -146,6 +154,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Seq(11, 12, 13, 14, 15),
         Seq(16, 17, 18, 19, 20)
       ),
+      nbrOfBlocks = 4,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -167,6 +176,7 @@ class FountainCodeSpec extends AnyFlatSpec {
         Seq(11, 12, 13, 14, 15),
         Seq(16, 17, 18, 19)
       ),
+      nbrOfBlocks = 4,
       blockLength = 5
     )
     val codec = new FountainsCodes()
@@ -183,6 +193,7 @@ class FountainCodeSpec extends AnyFlatSpec {
     val inputData = dataToUnencodedPackages(
       Seq(60, 49, 0, 1, 1, -128, 0, 99, 125, -1, -128, -76, 108, -112, 127, -1,
         -111, 102, -128, -28, -46, -128, 91).grouped(5).toSeq,
+      nbrOfBlocks = 5,
       5
     )
     val codec = new FountainsCodes()

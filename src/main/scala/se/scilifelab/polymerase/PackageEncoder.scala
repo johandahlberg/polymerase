@@ -38,9 +38,16 @@ object PackageEncoder {
       input: Iterator[Byte],
       packageSize: Int
   ): Iterator[Package] = {
-    input.grouped(packageSize).zipWithIndex.map {
+    val (blocks, counter) = input.grouped(packageSize).duplicate
+    val nbrOfBlocks = counter.size
+    blocks.zipWithIndex.map {
       case (data, index) =>
-        Package.fromBytes(index, packageSize, data.toArray)
+        Package.fromBytes(
+          inputIndex = index,
+          inputTotalNumberOfBlocks = nbrOfBlocks,
+          inputBlockLength = packageSize,
+          inputData = data.toArray
+        )
     }
   }
 
