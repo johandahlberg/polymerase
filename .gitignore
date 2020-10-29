@@ -1,4 +1,5 @@
 target/
 .metals/
 project/.*
+project/project/
 .bloop/
