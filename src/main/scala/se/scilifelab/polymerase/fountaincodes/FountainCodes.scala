@@ -155,8 +155,7 @@ class FountainsCodes(
     * @return
     */
   def decode(
-      data: Iterator[Package],
-      numberOfBlocks: Int
+      data: Iterator[Package]
   ): (Seq[Package], Int) = {
 
     /**
@@ -251,8 +250,17 @@ class FountainsCodes(
 
     }
 
+    def guessNumberOfBlocks(packageIterator: Iterator[Package]): Int =
+      packageIterator
+        .take(100)
+        .map(_.totalNumberOfBlocks)
+        .toSeq
+        .groupMapReduce(identity)(_ => 1)(_ + _) // find the number of votes for a particular number of packages
+        .maxBy(_._2) // Find the number with the most votes
+        ._1
+
     val (dataIterator, countIterator) = data.duplicate
-    val nbrOfBlocksGuess = numberOfBlocks //countIterator.map(_.index).max
+    val nbrOfBlocksGuess = guessNumberOfBlocks(countIterator)
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
     val symbols = recoverGraph(dataIterator, nbrOfBlocksGuess).toSeq
 

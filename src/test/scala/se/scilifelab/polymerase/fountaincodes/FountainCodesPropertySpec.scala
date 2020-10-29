@@ -30,7 +30,7 @@ class FountainCodesPropertySpec
         val codec = new FountainsCodes()
         val encoded = codec.encode(unencoded)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(encoded, unencoded.length)
+          codec.decode(encoded)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)
@@ -45,7 +45,7 @@ class FountainCodesPropertySpec
         val encoded = codec.encode(unencoded)
         val dropped = encoded.toSeq.drop(1)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(dropped.iterator, unencoded.length)
+          codec.decode(dropped.iterator)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)

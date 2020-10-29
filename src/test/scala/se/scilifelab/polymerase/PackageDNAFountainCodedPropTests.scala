@@ -33,7 +33,7 @@ class PackageDNAFountainCodesPropertySpec
         val dnaEncoded = PackageDNACodec.encode(fountainEncoded)
         val dnaDecoded = PackageDNACodec.decode(dnaEncoded)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(dnaDecoded, unencoded.length)
+          codec.decode(dnaDecoded)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)
@@ -51,7 +51,7 @@ class PackageDNAFountainCodesPropertySpec
         val dropped = dnaEncoded.toSeq.drop(1)
         val dnaDecoded = PackageDNACodec.decode(dropped.iterator)
         val (res, nbrOfDecodedBlocks) =
-          codec.decode(dnaDecoded, unencoded.length)
+          codec.decode(dnaDecoded)
 
         nbrOfDecodedBlocks should equal(unencoded.length)
         unencoded.map(_.data.toList) should equal(res.map(_.data.toList).toList)

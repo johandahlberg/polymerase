@@ -144,9 +144,8 @@ object PolymeraseFountainDecode extends App {
     }
 
   val fountainCodec = new FountainsCodes()
-  // TODO Using Int.MaxValue here is probably not correct.
   val (decodedPackages, nbrOfPackagesDecoded) =
-    fountainCodec.decode(dnaDecodedPackages, Int.MaxValue)
+    fountainCodec.decode(dnaDecodedPackages)
 
   decodedPackages
     .take(nbrOfPackagesDecoded)
