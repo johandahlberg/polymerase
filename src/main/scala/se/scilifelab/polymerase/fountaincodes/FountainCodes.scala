@@ -7,14 +7,18 @@ import scala.collection.immutable.SortedMap
 import scala.collection.immutable.SortedSet
 
 /**
-  * TODO Write docs
-  *
-  * @param index
-  * @param data
-  * @param degree
-  * @param neighbors
+  * A symbol contains data. If the degree is one, it means
+  * that it contains the actual data of the original block,
+  * if the degree is higher than one, it can be xor:ed with
+  * an other symbol in its set of neigbours to reduce its degree.
+  * Thus eventually by iterating over the symbols that original
+  * data will (at a high probability) be recovered.
+  * @param index The index of the symbol
+  * @param data The currect data of the symbol.
+  * @param degree The current degree of the symbol
+  * @param neighbors The indexes of the other symbols that can be xor:ed with this one
   */
-case class Symbol(
+private case class Symbol(
     index: Int,
     data: Array[UnsignedByte],
     degree: Int,
@@ -25,9 +29,11 @@ case class Symbol(
 }
 
 /**
-  * TODO Write docs
-  *
-  * @param randomSeed
+  * This codec implements LT-codes. An excellent introduction to the topic can be found here:
+  * https://franpapers.com/en/algorithmic/2018-introduction-to-fountain-codes-lt-codes-with-python/
+  * This text has also been very helpful in the writing of this implementation.
+  * @param randomSeed The random seed used to prime the PRNG for the Soliton Distribution.
+  * @param packageMultiplicationFactor The number of packages to generate from the original data. Should should be > 1
   */
 class FountainsCodes(
     randomSeed: Int = 1234,
@@ -35,8 +41,9 @@ class FountainsCodes(
 ) {
 
   /**
-    * Generate degree indexes, between 0 and nbrOfBlocks
-    *
+    * Generate degree indexes, between 0 and nbrOfBlocks,
+    * that are used to decide at encoding and decoding
+    * to decide which blocks to xor.
     * @param index
     * @param degree
     * @param nbrOfBlocks
@@ -53,6 +60,12 @@ class FountainsCodes(
     )
   }
 
+  /**
+    * Xor to arrays of Unsigned bytes of the same length
+    * @param x
+    * @param y
+    * @return
+    */
   private def xOrByteArrays(
       x: Array[UnsignedByte],
       y: Array[UnsignedByte]
@@ -63,7 +76,9 @@ class FountainsCodes(
   }
 
   /**
-    * TODO Write docs.
+    * Perform the LT-encoding operation on the given packages. It will return an iterator of packages
+    * where the input packages have been xor:ed together, to create N packges, there N is determined
+    * by the codecs packageMultiplicationFactor.
     *
     * @param data
     * @return
@@ -97,6 +112,11 @@ class FountainsCodes(
 
   }
 
+  /**
+    * Get the for a specific block, so that they can be retrived by index later.
+    * @param nbrOfBlocks
+    * @return
+    */
   private def getDegrees(
       nbrOfBlocks: Int
   ): LazyList[Int] = {
@@ -111,8 +131,8 @@ class FountainsCodes(
   }
 
   /**
-    * For  set of input symbols, figure out based on their index, which their
-    * neighbours should be. This only words of the random number generator
+    * For a set of input packages, figure out based on their index, which their
+    * neighbours should be. This only works of the random number generator
     * used by generateIndexPosition uses the same seed.
     *
     * @param symbols
@@ -124,9 +144,6 @@ class FountainsCodes(
       nbrOfBlocks: Int
   ): Iterator[Symbol] = {
 
-    // TODO Figure out a way to only sample degress up to the necessary
-    // index, to allow lazy number of blocks.
-    // One way to do it might be to use a stream.
     val degrees = getDegrees(nbrOfBlocks)
 
     for { pck <- packages } yield {
@@ -145,14 +162,12 @@ class FountainsCodes(
     }
   }
 
-  // TODO How do we know how many blocks are to be decoded?
-
   /**
-    * TODO Write docs!
+    * Assumes that the set of given packages have been LT-encoded and attempts
+    * to decode the original packages.
     *
     * @param data
-    * @param numberOfBlocks
-    * @return
+    * @return The decoded packages, and the number of packages that have been decoded
     */
   def decode(
       data: Iterator[Package]
@@ -250,6 +265,12 @@ class FountainsCodes(
 
     }
 
+    /**
+      * Guess the number of blocks, based on a vote from
+      * the first 100 packages.
+      * @param packageIterator
+      * @return A guess of how many blocks need to be decoded.
+      */
     def guessNumberOfBlocks(packageIterator: Iterator[Package]): Int =
       packageIterator
         .take(100)

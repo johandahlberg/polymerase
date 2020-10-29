@@ -39,6 +39,7 @@ case object DNACodec {
   }
 
   // TODO Encode that we only accept integers in the range 0 - 255
+  // TODO Refactor this to use UnsignedBytes instead of Int?
   def encodeBlocks(data: Iterator[Array[Int]]): Iterator[Array[Nucleotide]] = {
     CodecUtils.createDataBlock(data).map(datum => encode(datum))
   }

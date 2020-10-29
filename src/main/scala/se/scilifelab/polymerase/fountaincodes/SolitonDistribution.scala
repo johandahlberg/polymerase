@@ -65,9 +65,8 @@ class RobustSoliton(
     (rho(i) + theta(i)) / beta
   }
 
-  // TODO Think of if we really want to cache this or not.
   private val probDistribution =
-    (1 to k).toStream.map(index => robustSoliton(index))
+    LazyList.from((1 to k).map(index => robustSoliton(index)))
 
   // TODO This does not really work here, I think, because the distribution defined
   // above is not the cumulative distribution function, but the distribution function
