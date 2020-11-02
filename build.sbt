@@ -2,11 +2,11 @@ enablePlugins(JavaAppPackaging)
 
 import Dependencies._
 
-ThisBuild / scalaVersion := "2.13.2"
-ThisBuild / version := "0.1.0-SNAPSHOT"
-ThisBuild / organization := "se.scilifelab"
-ThisBuild / organizationName := "scilifelab"
-ThisBuild / maintainer := "johan.dahlberg@medsci.uu.se"
+scalaVersion := "2.13.2"
+version := "0.1.0-SNAPSHOT"
+organization := "se.scilifelab"
+organizationName := "scilifelab"
+maintainer := "johan@uppsala-bioinformatics.se"
 
 resolvers += "Artima Maven Repository" at "https://repo.artima.com/releases"
 
@@ -23,4 +23,3 @@ lazy val root = (project in file("."))
       scalaTestScalaCheckPlugin % Test
     )
   )
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
