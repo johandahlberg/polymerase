@@ -2,7 +2,7 @@
 
 Part of the algorithm(s) here are covered by [US patent 16/032,946](https://patents.google.com/patent/US20190020353A1/en).
 
-# Polymerase: project motivation
+# Polymerase
 
 I have been following the the rise of [DNA as a storage medium for digital data](https://en.wikipedia.org/wiki/DNA_digital_data_storage) with great interest. DNA is interesting as a storage medium since not only is it a very
 dense way of storing data, but it is also relatively stable and easy to copy. These properties make it an intersting
