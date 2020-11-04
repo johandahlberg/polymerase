@@ -1,6 +1,6 @@
 # Disclaimer
 
-Part of the algorithm(s) here are covered by [US patent 16/032,946](https://patents.google.com/patent/US20190020353A1/en).
+Part of the algorithm(s) implemented here are covered by [US patent 16/032,946](https://patents.google.com/patent/US20190020353A1/en).
 
 # Polymerase
 
