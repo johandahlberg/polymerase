@@ -2,7 +2,7 @@ package se.scilifelab.polymerase
 
 import org.scalatest._
 import scala.annotation.meta.field
-import se.scilifelab.reedsolomon.TestUtils
+import se.scilifelab.polymerase.TestUtils
 
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec

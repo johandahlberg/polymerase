@@ -15,10 +15,11 @@ package object polymerase {
     def apply(x: Byte): UnsignedByte = new UnsignedByte(x)
 
     def apply(x: Int): UnsignedByte = {
-      require(
-        -128 <= x && x < 128,
-        s"Only integers in the range [-128, 128) can be converted to unsigned bytes. Integer was: ${x}"
-      )
+      // TODO Don't know if I should keep this or not.
+      //require(
+      //  -128 <= x && x < 128,
+      //  s"Only integers in the range [-128, 128) can be converted to unsigned bytes. Integer was: ${x}"
+      //)
       new UnsignedByte((x.toByte & 0xFF).toByte)
     }
   }
@@ -86,7 +87,8 @@ package object polymerase {
       private val inputBlockLength: Int,
       private val inputTotalNumberOfBlocks: Int,
       private val dataLength: Int,
-      private val inputData: Array[UnsignedByte]
+      private val inputData: Array[UnsignedByte],
+      private val inputErrorCorrectionBytes: Array[UnsignedByte] = Array.empty
   ) extends Ordered[Package] {
 
     val bytes: Array[UnsignedByte] =
@@ -95,24 +97,25 @@ package object polymerase {
         .map(UnsignedByte(_)) ++
         CodecUtils.encodeIntAsBytes(inputIndex).map(UnsignedByte(_)) ++
         CodecUtils.encodeIntAsBytes(dataLength).map(UnsignedByte(_)) ++
-        inputData.padTo(inputBlockLength, UnsignedByte(0))
+        inputData.padTo(inputBlockLength, UnsignedByte(0)) ++
+        inputErrorCorrectionBytes
 
     lazy val index = Package.index(bytes)
     lazy val length = Package.length(bytes)
     lazy val totalNumberOfBlocks = Package.totalNumberOfBlocks(bytes)
+    lazy val byteLength = bytes.length
 
-    def data = bytes.drop(Package.dataOffsett).take(length)
-
-    def rawBytes = bytes
-
-    def equals(that: Package): Boolean = {
-      this.index == that.index && this.length == that.length &&
-      data.sameElements(that.data)
+    def bytesAsIntArray: Array[Int] = {
+      bytes
+        .map(_.intValue)
     }
 
+    def data = bytes.drop(Package.dataOffsett).take(length)
+    def errorCorrectionBytes = bytes.drop(Package.dataOffsett).drop(length)
+
     override def toString(): String = {
-      s"Package(totalNumberOfBlocks=$totalNumberOfBlocks, index=$index, length=$length," +
-        s"data=${data.map(_.intValue).toSeq})"
+      s"Package(totalNumberOfBlocks=$totalNumberOfBlocks, index=$index, length=$length, " +
+        s"data=${data.map(_.intValue).toSeq}, errorCorrectionBytes=${errorCorrectionBytes.map(_.intValue).toSeq})"
     }
 
     def compare(that: Package): Int = this.index.compare(that.index)

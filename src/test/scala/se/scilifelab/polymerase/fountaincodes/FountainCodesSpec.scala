@@ -2,7 +2,6 @@ package se.scilifelab.polymerase.fountaincodes
 
 import org.scalatest._
 import scala.annotation.meta.field
-import se.scilifelab.reedsolomon.TestUtils
 
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec

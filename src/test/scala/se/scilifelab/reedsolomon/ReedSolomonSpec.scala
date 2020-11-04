@@ -2,10 +2,11 @@ package se.scilifelab.reedsolomon
 
 import org.scalatest._
 import scala.annotation.meta.field
-import se.scilifelab.reedsolomon.TestUtils
+import se.scilifelab.polymerase.TestUtils
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec
 import matchers.should.Matchers._
+import se.scilifelab.polymerase.Package
 
 class ReedSolomonSpec extends AnyFlatSpec {
 
@@ -157,7 +158,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
     decodedMessage should be(mess)
   }
 
-  it should "decode fixed message (when there is one error)" in {
+  it should "decode fixed message (when there is one error) (1)" in {
     val coder = ReedSolomonCoder(255, 223)
     val message = Range(1, 21).toArray
     val encodedMessage = coder.encode(message)
@@ -219,4 +220,23 @@ class ReedSolomonSpec extends AnyFlatSpec {
 
   }
 
+}
+
+class ReedSolomonPackageCodecSpec extends AnyFlatSpec {
+  "A ReedSolomonPackageCodec" should "correctly encode/decode a Package" in {
+    val pck = Package.fromBytes(0, 1, 5, Array.fill(5)(1.toByte))
+    val codec = ReedSolomonPackageCodec(pck.byteLength, 3)
+    val result = codec.decodePackage(codec.encodePackage(pck))
+    result.data should be(pck.data)
+  }
+
+  it should "correctly encode/decode a Package that has been corrupted" in {
+    val pck = Package.fromBytes(0, 1, 5, Array.fill(5)(3.toByte))
+    val codec = ReedSolomonPackageCodec(pck.byteLength, 3)
+    val encoded = codec.encodePackage(pck)
+    val corrupted = TestUtils.corruptPackage(encoded, 1)
+    val result = codec.decodePackage(corrupted)
+    result.data should be(pck.data)
+
+  }
 }

@@ -3,6 +3,47 @@ package se.scilifelab.reedsolomon
 import scala.math
 import java.io.StringWriter
 import scala.annotation.meta.field
+import se.scilifelab.polymerase.Package
+import se.scilifelab.polymerase.UnsignedByte
+
+/**
+  * TODO Write docs!
+  *
+  * @param packageLength
+  * @param errorCorrectionBits
+  */
+case class ReedSolomonPackageCodec(
+    packageLength: Int,
+    errorCorrectionBits: Int
+) {
+
+  // Note on this implementation or TODO
+  // Part of this is a pragmatic implementation, or what is commonly known
+  // as a hack. Since the current ReedSolmonCoder does not like messages
+  // that lead with a zero, I add a one to the start of the message here,
+  // and then I remove it at the end. This is not beautiful, and for real life
+  // applications of this it will also cost you to synth those extra four bases,
+  // but for now I will leave this alone.
+
+  val rsEncoder =
+    ReedSolomonCoder(
+      n = packageLength + errorCorrectionBits,
+      k = packageLength + 1
+    )
+
+  def encodePackage(pck: Package): Package = {
+    val data = Array(1) ++ pck.bytesAsIntArray
+    val encoded = rsEncoder.encode(data)
+    Package.fromRawBytes(encoded.map(UnsignedByte(_)))
+  }
+  def decodePackage(pck: Package): Package = {
+    val data = pck.bytesAsIntArray
+    val (decoded, _) = rsEncoder.decode(data, noStrip = true)
+    val bytes = decoded.drop(1).map(x => UnsignedByte(x))
+    Package.fromRawBytes(bytes)
+  }
+
+}
 
 /**
   * A ReedSolomonCoder object can be used to encode a message M
@@ -34,7 +75,7 @@ case class ReedSolomonCoder(
 
   val gf2Charac = (math.pow(2, cExp) - 1).toInt
 
-  require(n < 256, "n must be smaller than 256")
+  require(n < 256, s"n must be smaller than 256. n was: $n")
   require(n > 0 || k > 0, "n and k must be positive")
   require(n <= gf2Charac, s"n must be at most $gf2Charac")
   require(!(k > n), "n must be greater than message length k")
@@ -138,7 +179,6 @@ case class ReedSolomonCoder(
         (ret.dropWhile(x => x == 0), ecc)
       }
     } else {
-
       val (erasureCount, erasureLoc, erasureEval) = if (erasurePos.isDefined) {
         val erasureLoc = findErasureLocator(erasurePos.get)
         (
