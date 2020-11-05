@@ -130,21 +130,21 @@ class ReedSolomonPackageCodecPropertySpec
         val codec =
           ReedSolomonPackageCodec(unencoded.byteLength, 10)
         val encoded = codec.encodePackage(unencoded)
-        //val result = codec.decodePackage(encoded)
-        //result.data should be(unencoded.data)
+        val result = codec.decodePackage(encoded)
+        result.data should be(unencoded.data)
       }
     }
   }
   it should "decode messages when data is corrupted" in {
     forAll(dataPackage) { unencoded =>
       {
-        //val codec =
-        //  ReedSolomonPackageCodec(unencoded.byteLength, 10)
-        //val encoded = codec.encodePackage(unencoded)
-        //val corrupted =
-        //  TestUtils.corruptPackage(encoded, 1)
-        //val result = codec.decodePackage(corrupted)
-        //result.data should be(unencoded.data)
+        val codec =
+          ReedSolomonPackageCodec(unencoded.byteLength, 10)
+        val encoded = codec.encodePackage(unencoded)
+        val corrupted =
+          TestUtils.corruptPackage(encoded, 1)
+        val result = codec.decodePackage(corrupted)
+        result.data should be(unencoded.data)
       }
     }
   }
