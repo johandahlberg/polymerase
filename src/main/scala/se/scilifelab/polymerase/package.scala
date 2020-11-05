@@ -47,15 +47,13 @@ package object polymerase {
         inputData: Array[UnsignedByte]
     ): Package = {
       val dataLength = length(inputData)
-      val data = inputData.drop(dataOffsett).take(length(inputData))
-      val errorCorrectionBytesOffset = dataOffsett + dataLength
+      val data = inputData.drop(dataOffsett)
       Package(
         inputIndex = index(inputData),
         inputTotalNumberOfBlocks = totalNumberOfBlocks(inputData),
         inputBlockLength = inputData.drop(dataOffsett).length,
         dataLength = dataLength,
-        inputData = data,
-        inputErrorCorrectionBytes = inputData.drop(errorCorrectionBytesOffset)
+        inputData = data
       )
     }
 
