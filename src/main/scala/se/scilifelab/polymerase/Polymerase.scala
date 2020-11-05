@@ -11,6 +11,7 @@ import se.scilifelab.polymerase._
 import se.scilifelab.reedsolomon.{Defaults => RSDefaults}
 import se.scilifelab.polymerase.fountaincodes.FountainsCodes
 import java.nio.charset.StandardCharsets
+import se.scilifelab.reedsolomon.ReedSolomonPackageCodec
 
 trait EncoderApp extends App {
 
@@ -113,9 +114,9 @@ object PolymeraseFountainEncode extends App {
   val pcksIterator = PackageEncoder.encode(iterator, 128)
   val pcks = pcksIterator.toSeq
 
-  val encodedPcks = codec.encode(pcks).toSeq
+  val encodedPcks = codec.encode(pcks)
 
-  val dnaEncoded = PackageDNACodec.encode(encodedPcks.iterator)
+  val dnaEncoded = PackageDNACodec.encode(encodedPcks)
 
   dnaEncoded.zipWithIndex.foreach {
     case (x, i) =>
@@ -185,4 +186,94 @@ object PolymeraseDropReads extends App {
   input.close()
   output.flush()
   output.close()
+}
+
+trait ErlichCodecConfig {
+  val dataLength = 128
+  val multiplicationFactor = 3
+  val errorCorrectionBytes = 3
+  val packLength = Package.calculateByteLength(dataLength)
+}
+
+object PolymeraseErlichEncode extends App with ErlichCodecConfig {
+
+  val fountainCodec = new FountainsCodes(
+    packageMultiplicationFactor = multiplicationFactor
+  )
+  val rsCodec =
+    new ReedSolomonPackageCodec(
+      packageLength = packLength,
+      errorCorrectionBits = errorCorrectionBytes
+    )
+
+  val input = new DataInputStream(new BufferedInputStream(System.in))
+  val output = new PrintWriter(new BufferedOutputStream(System.out))
+
+  val iterator =
+    LazyList
+      .continually(input.read())
+      .takeWhile {
+        _ != -1
+      }
+      .map(_.toByte)
+      .iterator
+
+  val pcksIterator = PackageEncoder.encode(iterator, dataLength)
+  val fountainEncodedPcks = fountainCodec.encode(pcksIterator.toSeq)
+  val tmp = fountainEncodedPcks.toSeq
+  //tmp.foreach(System.err.println)
+  System.err.println(s"PCK LENGTH: $packLength")
+  val rsEncodedPackages = rsCodec.encodePackages(tmp.iterator)
+
+  val dnaEncoded = PackageDNACodec.encode(rsEncodedPackages)
+
+  dnaEncoded.zipWithIndex.foreach {
+    case (x, i) =>
+      output.println(s">dna $i")
+      output.println(x)
+  }
+
+  input.close()
+  output.flush()
+  output.close()
+
+}
+
+object PolymeraseErlichDecode extends App with ErlichCodecConfig {
+
+  val input = Source.fromInputStream(System.in)
+  val lines = input.getLines().filter(s => !s.startsWith(">"))
+  val output = new BufferedOutputStream(System.out)
+
+  val dnaDecodedPackages = lines
+    .map(line => PackageDNACodec.decode(line.toArray))
+    .map { pck =>
+      Package.fromRawBytes(pck)
+    }
+
+  val rsCodec =
+    new ReedSolomonPackageCodec(
+      packageLength = packLength,
+      errorCorrectionBits = errorCorrectionBytes
+    )
+
+  val fountainCodec = new FountainsCodes(
+    packageMultiplicationFactor = PolymeraseErlichEncode.multiplicationFactor
+  )
+
+  val okPackages = dnaDecodedPackages
+    .filter(rsCodec.checkPackage(_))
+    .map(rsCodec.decodePackage(_))
+
+  val (decodedPackages, nbrOfPackagesDecoded) =
+    fountainCodec.decode(okPackages)
+
+  decodedPackages
+    .take(nbrOfPackagesDecoded)
+    .foreach(pck => output.write(pck.data.map(_.underlyingByte)))
+
+  input.close()
+  output.flush()
+  output.close()
+
 }

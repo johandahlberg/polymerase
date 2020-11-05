@@ -37,6 +37,10 @@ case class ReedSolomonPackageCodec(
     Package.fromRawBytes(encoded.map(UnsignedByte(_)))
   }
 
+  def encodePackages(pcks: Iterator[Package]): Iterator[Package] = {
+    pcks.map(encodePackage(_))
+  }
+
   def decodePackage(pck: Package): Package = {
     val data = pck.bytesAsIntArray
     val (decoded, _) = rsEncoder.decode(data, noStrip = true)
@@ -44,11 +48,20 @@ case class ReedSolomonPackageCodec(
     Package.fromRawBytes(bytes)
   }
 
-  def checkPackage(pck: Package): Boolean = {
-    val data = pck.bytesAsIntArray
-    rsEncoder.checkFast(data)
+  def decodePackages(pcks: Iterator[Package]): Iterator[Package] = {
+    pcks.map(decodePackage(_))
   }
 
+  def checkPackage(pck: Package): Boolean = {
+    val data = pck.bytesAsIntArray
+    val res = rsEncoder.checkFast(data)
+    System.err.println(s"RES: $res")
+    res
+  }
+
+  def checkPackages(pcks: Iterator[Package]): Iterator[Boolean] = {
+    pcks.map(checkPackage(_))
+  }
 }
 
 /**

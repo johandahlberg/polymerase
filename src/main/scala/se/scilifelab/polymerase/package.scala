@@ -46,13 +46,23 @@ package object polymerase {
     def fromRawBytes(
         inputData: Array[UnsignedByte]
     ): Package = {
+      val dataLength = length(inputData)
+      val data = inputData.drop(dataOffsett).take(length(inputData))
+      val errorCorrectionBytesOffset = dataOffsett + dataLength
       Package(
         inputIndex = index(inputData),
         inputTotalNumberOfBlocks = totalNumberOfBlocks(inputData),
         inputBlockLength = inputData.drop(dataOffsett).length,
-        dataLength = length(inputData),
-        inputData = inputData.drop(dataOffsett)
+        dataLength = dataLength,
+        inputData = data,
+        inputErrorCorrectionBytes = inputData.drop(errorCorrectionBytesOffset)
       )
+    }
+
+    def calculateByteLength(
+        lengthOfData: Int
+    ): Int = {
+      dataOffsett + lengthOfData
     }
 
     val intByteLength = 4
@@ -90,6 +100,8 @@ package object polymerase {
       private val inputData: Array[UnsignedByte],
       private val inputErrorCorrectionBytes: Array[UnsignedByte] = Array.empty
   ) extends Ordered[Package] {
+
+    // TODO Don't know if the we actually need to keep the errorCorrectionBits separate
 
     val bytes: Array[UnsignedByte] =
       CodecUtils
