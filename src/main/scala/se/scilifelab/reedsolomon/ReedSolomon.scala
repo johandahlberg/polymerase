@@ -54,9 +54,7 @@ case class ReedSolomonPackageCodec(
 
   def checkPackage(pck: Package): Boolean = {
     val data = pck.bytesAsIntArray
-    val res = rsEncoder.checkFast(data)
-    System.err.println(s"RES: $res")
-    res
+    rsEncoder.checkFast(data)
   }
 
   def checkPackages(pcks: Iterator[Package]): Iterator[Boolean] = {

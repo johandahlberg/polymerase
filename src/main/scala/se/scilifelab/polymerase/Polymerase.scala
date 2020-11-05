@@ -192,7 +192,7 @@ trait ErlichCodecConfig {
   val dataLength = 128
   val multiplicationFactor = 3
   val errorCorrectionBytes = 3
-  val packLength = Package.calculateByteLength(dataLength)
+  val packLength = Package.calculateByteLength(dataLength, errorCorrectionBytes)
 }
 
 object PolymeraseErlichEncode extends App with ErlichCodecConfig {
@@ -220,10 +220,7 @@ object PolymeraseErlichEncode extends App with ErlichCodecConfig {
 
   val pcksIterator = PackageEncoder.encode(iterator, dataLength)
   val fountainEncodedPcks = fountainCodec.encode(pcksIterator.toSeq)
-  val tmp = fountainEncodedPcks.toSeq
-  //tmp.foreach(System.err.println)
-  System.err.println(s"PCK LENGTH: $packLength")
-  val rsEncodedPackages = rsCodec.encodePackages(tmp.iterator)
+  val rsEncodedPackages = rsCodec.encodePackages(fountainEncodedPcks)
 
   val dnaEncoded = PackageDNACodec.encode(rsEncodedPackages)
 

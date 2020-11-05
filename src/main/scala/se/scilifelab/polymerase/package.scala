@@ -58,9 +58,10 @@ package object polymerase {
     }
 
     def calculateByteLength(
-        lengthOfData: Int
+        lengthOfData: Int,
+        nbrOfErrorCorrectionBytes: Int
     ): Int = {
-      dataOffsett + lengthOfData
+      dataOffsett + lengthOfData + nbrOfErrorCorrectionBytes * 4
     }
 
     val intByteLength = 4
