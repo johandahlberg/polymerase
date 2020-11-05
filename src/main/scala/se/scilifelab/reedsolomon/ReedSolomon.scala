@@ -36,11 +36,17 @@ case class ReedSolomonPackageCodec(
     val encoded = rsEncoder.encode(data)
     Package.fromRawBytes(encoded.map(UnsignedByte(_)))
   }
+
   def decodePackage(pck: Package): Package = {
     val data = pck.bytesAsIntArray
     val (decoded, _) = rsEncoder.decode(data, noStrip = true)
     val bytes = decoded.drop(1).map(x => UnsignedByte(x))
     Package.fromRawBytes(bytes)
+  }
+
+  def checkPackage(pck: Package): Boolean = {
+    val data = pck.bytesAsIntArray
+    rsEncoder.checkFast(data)
   }
 
 }

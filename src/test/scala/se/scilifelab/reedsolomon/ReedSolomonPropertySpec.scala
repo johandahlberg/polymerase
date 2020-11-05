@@ -148,4 +148,28 @@ class ReedSolomonPackageCodecPropertySpec
       }
     }
   }
+
+  it should "ok messages when data is not corrupted" in {
+    forAll(dataPackage) { unencoded =>
+      {
+        val codec =
+          ReedSolomonPackageCodec(unencoded.byteLength, 10)
+        val encoded = codec.encodePackage(unencoded)
+        codec.checkPackage(encoded) should be(true)
+      }
+    }
+  }
+
+  it should "flag messages when data is corrupted" in {
+    forAll(dataPackage) { unencoded =>
+      {
+        val codec =
+          ReedSolomonPackageCodec(unencoded.byteLength, 10)
+        val encoded = codec.encodePackage(unencoded)
+        val corrupted =
+          TestUtils.corruptPackage(encoded, 1)
+        codec.checkPackage(corrupted) should be(false)
+      }
+    }
+  }
 }
