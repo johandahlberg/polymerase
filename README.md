@@ -54,6 +54,7 @@ contributing to the project, this can be a good place to start looking.
 - Harmonize the interfaces for all codecs to use `Package` as input/output.
 - Look into implementing DNA Fountain strategy from Erlich and Zielinski (2017), including combining, RS-encoding and,
   filtering created reads for e.g. homopolymers
+- Write integration tests for the CLI classes.
 
 # An incomplete list of relevant references data storage in DNA
 

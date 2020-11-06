@@ -251,11 +251,17 @@ case class ReedSolomonCoder(
       //    s"Input was: ${r.mkString("[", ",", "]")} and c was: $c"
       //)
       // TODO Don't know of this, or the above is better
-      val correctedC = if (c.length > message.length) {
-        rp
-      } else {
-        c
+      //val correctedC = if (c.length > message.length) {
+      //  rp
+      //} else {
+      //  c
+      //}
+
+      if (c.length > message.length) {
+        return Failure(new Exception("Failed state!"))
       }
+
+      val correctedC = c
 
       val ret = correctedC.cooefficients.dropRight(n - k).map(_.i)
       val ecc = correctedC.cooefficients.takeRight(n - k).map(_.i)
