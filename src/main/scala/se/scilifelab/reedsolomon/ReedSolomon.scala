@@ -5,6 +5,9 @@ import java.io.StringWriter
 import scala.annotation.meta.field
 import se.scilifelab.polymerase.Package
 import se.scilifelab.polymerase.UnsignedByte
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 /**
   * TODO Write docs!
@@ -14,7 +17,7 @@ import se.scilifelab.polymerase.UnsignedByte
   */
 case class ReedSolomonPackageCodec(
     packageLength: Int,
-    errorCorrectionBits: Int
+    errorCorrectionBytes: Int
 ) {
 
   // Note on this implementation or TODO
@@ -25,10 +28,13 @@ case class ReedSolomonPackageCodec(
   // applications of this it will also cost you to synth those extra four bases,
   // but for now I will leave this alone.
 
-  val rsEncoder =
+  val totalPackageLength = packageLength + errorCorrectionBytes
+  private val messageLength = packageLength + 1
+
+  private val rsEncoder =
     ReedSolomonCoder(
-      n = packageLength + errorCorrectionBits,
-      k = packageLength + 1
+      n = totalPackageLength,
+      k = messageLength
     )
 
   def encodePackage(pck: Package): Package = {
@@ -41,15 +47,17 @@ case class ReedSolomonPackageCodec(
     pcks.map(encodePackage(_))
   }
 
-  def decodePackage(pck: Package): Package = {
-    val data = pck.bytesAsIntArray
-    val (decoded, _) = rsEncoder.decode(data, noStrip = true)
-    val bytes = decoded.drop(1).map(x => UnsignedByte(x))
-    Package.fromRawBytes(bytes)
+  def decodePackage(pck: Package): Try[Package] = {
+    for {
+      (decoded, _) <- rsEncoder.decode(pck.bytesAsIntArray, noStrip = true)
+    } yield {
+      val bytes = decoded.drop(1).map(x => UnsignedByte(x))
+      Package.fromRawBytes(bytes)
+    }
   }
 
   def decodePackages(pcks: Iterator[Package]): Iterator[Package] = {
-    pcks.map(decodePackage(_))
+    pcks.map(decodePackage(_)).filter(_.isSuccess).map(_.get)
   }
 
   def checkPackage(pck: Package): Boolean = {
@@ -173,7 +181,7 @@ case class ReedSolomonCoder(
       noStrip: Boolean = false,
       erasurePosOption: Option[Array[Int]] = None,
       onlyErasure: Boolean = false
-  ): (Array[Int], Array[Int]) = {
+  ): Try[(Array[Int], Array[Int])] = {
 
     // This implementation is based on decode_fast in the unireedsolomon python library
 
@@ -191,9 +199,9 @@ case class ReedSolomonCoder(
       val ecc = message.takeRight(n - k)
 
       if (noStrip) {
-        (ret, ecc)
+        Success((ret, ecc))
       } else {
-        (ret.dropWhile(x => x == 0), ecc)
+        Success((ret.dropWhile(x => x == 0), ecc))
       }
     } else {
       val (erasureCount, erasureLoc, erasureEval) = if (erasurePos.isDefined) {
@@ -216,8 +224,10 @@ case class ReedSolomonCoder(
       }
       val (x, j) = chienSearch(sigma)
 
-      // TODO Include possiblity of failure in type signature
-      require(j.length <= n - k, "Potentially incorrect decoding")
+      if (j.length > n - k) {
+        // TODO Clean this up to avoid explit return statement
+        return Failure(new AssertionError("Failed to decode"))
+      }
 
       val y = forney(omega, x)
 
@@ -252,12 +262,12 @@ case class ReedSolomonCoder(
       // TODO Clean this up
       if (noStrip) {
         if (ret.isEmpty) {
-          (Array.fill(k)(0), ecc)
+          Success((Array.fill(k)(0), ecc))
         } else {
-          (ret, ecc)
+          Success((ret, ecc))
         }
       } else {
-        (ret.dropWhile(_ == 0), ecc)
+        Success((ret.dropWhile(_ == 0), ecc))
       }
     }
   }

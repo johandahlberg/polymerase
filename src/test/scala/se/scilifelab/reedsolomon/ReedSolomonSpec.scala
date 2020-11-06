@@ -86,7 +86,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
     val coder = ReedSolomonCoder(255, 223)
     val message = "Hello, world! This is a long string".map(_.toInt).toArray
     val encodedMessage = coder.encode(message)
-    val (decodedMessage, _) = coder.decode(encodedMessage)
+    val (decodedMessage, _) = coder.decode(encodedMessage).get
 
     message should be(decodedMessage)
 
@@ -96,7 +96,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
 
     val coder = ReedSolomonCoder(255, 223)
     val encodedMessage = coder.encode(Array(0))
-    val (decodedMessage, _) = coder.decode(encodedMessage)
+    val (decodedMessage, _) = coder.decode(encodedMessage).get
 
     encodedMessage.count(x => x == 0) should be(255)
 
@@ -108,7 +108,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
     val coder = ReedSolomonCoder(255, 223)
     val encodedMessage = coder.encode(mess)
 
-    val (decodedMessage, _) = coder.decode(encodedMessage)
+    val (decodedMessage, _) = coder.decode(encodedMessage).get
     decodedMessage shouldEqual mess
   }
 
@@ -123,7 +123,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
           index,
           scala.math.floorMod(encodedMessage(index) + 50, 256)
         )
-        val (decodedMessage, _) = coder.decode(garbledMessage)
+        val (decodedMessage, _) = coder.decode(garbledMessage).get
         message should be(decodedMessage)
       }
     }
@@ -135,7 +135,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
     val encodedMessage = coder.encode(message)
 
     val garbledMessage = TestUtils.corruptMessage(encodedMessage, 5)
-    val (decodedMessage, _) = coder.decode(garbledMessage, noStrip = true)
+    val (decodedMessage, _) = coder.decode(garbledMessage, noStrip = true).get
 
     decodedMessage.count(x => x == 0) should be(90)
   }
@@ -153,7 +153,7 @@ class ReedSolomonSpec extends AnyFlatSpec {
     val encodedMessage = coder.encode(mess)
 
     val garbledMessage = TestUtils.corruptMessage(encodedMessage, 5, 123)
-    val (decodedMessage, _) = coder.decode(garbledMessage)
+    val (decodedMessage, _) = coder.decode(garbledMessage).get
 
     decodedMessage should be(mess)
   }
@@ -164,13 +164,13 @@ class ReedSolomonSpec extends AnyFlatSpec {
     val encodedMessage = coder.encode(message)
 
     val garbledMessage = TestUtils.corruptMessage(encodedMessage, 1)
-    val (decodedMessage, _) = coder.decode(garbledMessage)
+    val (decodedMessage, _) = coder.decode(garbledMessage).get
     message.toSeq should be(decodedMessage.toSeq)
   }
 
   it should "decode an empty message" in {
     val coder = ReedSolomonCoder(255, 223)
-    val (mess, corr) = coder.decode(Array())
+    val (mess, corr) = coder.decode(Array()).get
     mess.isEmpty should be(true)
     corr.isEmpty should be(true)
   }
@@ -226,7 +226,7 @@ class ReedSolomonPackageCodecSpec extends AnyFlatSpec {
   "A ReedSolomonPackageCodec" should "correctly encode/decode a Package" in {
     val pck = Package.fromBytes(0, 1, 5, Array.fill(5)(1.toByte))
     val codec = ReedSolomonPackageCodec(pck.byteLength, 3)
-    val result = codec.decodePackage(codec.encodePackage(pck))
+    val result = codec.decodePackage(codec.encodePackage(pck)).get
     result.data should be(pck.data)
   }
 
@@ -235,7 +235,7 @@ class ReedSolomonPackageCodecSpec extends AnyFlatSpec {
     val codec = ReedSolomonPackageCodec(pck.byteLength, 3)
     val encoded = codec.encodePackage(pck)
     val corrupted = TestUtils.corruptPackage(encoded, 1)
-    val result = codec.decodePackage(corrupted)
+    val result = codec.decodePackage(corrupted).get
     result.data should be(pck.data)
 
   }

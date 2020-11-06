@@ -191,20 +191,19 @@ object PolymeraseDropReads extends App {
 trait ErlichCodecConfig {
   val dataLength = 128
   val multiplicationFactor = 3
+  // TODO Look at this, something is fishy here...
   val errorCorrectionBytes = 3
-  val packLength = Package.calculateByteLength(dataLength, errorCorrectionBytes)
-}
-
-object PolymeraseErlichEncode extends App with ErlichCodecConfig {
-
   val fountainCodec = new FountainsCodes(
     packageMultiplicationFactor = multiplicationFactor
   )
   val rsCodec =
     new ReedSolomonPackageCodec(
-      packageLength = packLength,
-      errorCorrectionBits = errorCorrectionBytes
+      packageLength = dataLength,
+      errorCorrectionBytes = errorCorrectionBytes
     )
+}
+
+object PolymeraseErlichEncode extends App with ErlichCodecConfig {
 
   val input = new DataInputStream(new BufferedInputStream(System.in))
   val output = new PrintWriter(new BufferedOutputStream(System.out))
@@ -248,19 +247,7 @@ object PolymeraseErlichDecode extends App with ErlichCodecConfig {
       Package.fromRawBytes(pck)
     }
 
-  val rsCodec =
-    new ReedSolomonPackageCodec(
-      packageLength = packLength,
-      errorCorrectionBits = errorCorrectionBytes
-    )
-
-  val fountainCodec = new FountainsCodes(
-    packageMultiplicationFactor = PolymeraseErlichEncode.multiplicationFactor
-  )
-
-  val okPackages = dnaDecodedPackages
-    .filter(rsCodec.checkPackage(_))
-    .map(rsCodec.decodePackage(_))
+  val okPackages = rsCodec.encodePackages(dnaDecodedPackages)
 
   val (decodedPackages, nbrOfPackagesDecoded) =
     fountainCodec.decode(okPackages)

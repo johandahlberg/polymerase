@@ -32,7 +32,7 @@ object ReedSolomonPropertySpec
     {
       val codec = ReedSolomonCoder(255, 223)
       val encoded = codec.encode(a.toArray)
-      val (res, _) = codec.decode(encoded)
+      val (res, _) = codec.decode(encoded).get
       a.toSeq == res.toSeq
     }
   }
@@ -45,7 +45,7 @@ object ReedSolomonPropertySpec
       val encoded = codec.encode(a.toArray)
       val corrupted =
         TestUtils.corruptMessage(encoded, 1)
-      val (res, _) = codec.decode(corrupted)
+      val (res, _) = codec.decode(corrupted).get
       a.toSeq == res.toSeq
     }
   }
@@ -57,7 +57,7 @@ object ReedSolomonPropertySpec
       val codec = ReedSolomonCoder(255, 223)
       val encoded = codec.encode(a.toArray)
       val corrupted = TestUtils.corruptMessage(encoded, 2)
-      val (res, _) = codec.decode(corrupted)
+      val (res, _) = codec.decode(corrupted).get
       a.toSeq == res.toSeq
     }
   }
@@ -69,7 +69,7 @@ object ReedSolomonPropertySpec
       val codec = ReedSolomonCoder(255, 223)
       val encoded = codec.encode(a.toArray)
       val corrupted = TestUtils.corruptMessage(encoded, 1)
-      val (res, _) = codec.decode(corrupted)
+      val (res, _) = codec.decode(corrupted).get
       a.toSeq == res.toSeq
     }
   }
@@ -88,7 +88,7 @@ object ReedSolomonPropertySpec
           scala.math.floorDiv((n - k), 2),
           randomSeed = 123
         )
-      val (res, _) = codec.decode(corrupted)
+      val (res, _) = codec.decode(corrupted).get
       a.toSeq == res.toSeq
     }
   }
@@ -130,7 +130,7 @@ class ReedSolomonPackageCodecPropertySpec
         val codec =
           ReedSolomonPackageCodec(unencoded.byteLength, 10)
         val encoded = codec.encodePackage(unencoded)
-        val result = codec.decodePackage(encoded)
+        val result = codec.decodePackage(encoded).get
         result.data should be(unencoded.data)
       }
     }
@@ -143,7 +143,7 @@ class ReedSolomonPackageCodecPropertySpec
         val encoded = codec.encodePackage(unencoded)
         val corrupted =
           TestUtils.corruptPackage(encoded, 1)
-        val result = codec.decodePackage(corrupted)
+        val result = codec.decodePackage(corrupted).get
         result.data should be(unencoded.data)
       }
     }

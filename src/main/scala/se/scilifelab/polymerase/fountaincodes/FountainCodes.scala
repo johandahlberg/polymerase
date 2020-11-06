@@ -87,6 +87,9 @@ class FountainsCodes(
 
     val nbrOfBlocks = data.length
     val nbrOfPackages = (nbrOfBlocks * packageMultiplicationFactor).toInt
+    //System.err.println(
+    //  s"Encoded $nbrOfBlocks blocks to $nbrOfPackages packages."
+    //)
 
     val degrees = getDegrees(nbrOfBlocks)
 
@@ -126,7 +129,7 @@ class FountainsCodes(
       nbrOfBlocks / 2 + 1,
       Some(randomSeed)
     )
-    // Sammple as many degress as is needed.
+    // Sample as many degress as is needed.
     1 #:: solitonDist.sample(Int.MaxValue - 1)
   }
 
@@ -146,7 +149,10 @@ class FountainsCodes(
 
     val degrees = getDegrees(nbrOfBlocks)
 
-    for { pck <- packages } yield {
+    for { (pck, i) <- packages.zipWithIndex } yield {
+      //System.err.println(s"Working on package nbr $i")
+      //System.err.println(s"Package: $pck")
+
       val neighbors =
         generateIndexPositions(
           index = pck.index,
@@ -282,6 +288,7 @@ class FountainsCodes(
 
     val (dataIterator, countIterator) = data.duplicate
     val nbrOfBlocksGuess = guessNumberOfBlocks(countIterator)
+    //System.err.println(s"Guess there were $nbrOfBlocksGuess blocks.")
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
     val symbols = recoverGraph(dataIterator, nbrOfBlocksGuess).toSeq
 

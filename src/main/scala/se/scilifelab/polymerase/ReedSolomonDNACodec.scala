@@ -50,12 +50,15 @@ object ReedSolomonDNACodec {
         .map(x => x & (0xff))
         .grouped(ReedSolomonDNACodec.readBlockSize)
 
+    // TODO The error handling here is not very good.
     val indexesAndData = byteBlocks
       .map { x =>
-        rsCoder.decode(x.toArray)._1
+        rsCoder
+          .decode(x.toArray)
       }
+      .filter(_.isSuccess)
       .map { res =>
-        CodecUtils.deconstructDataBlock(res)
+        CodecUtils.deconstructDataBlock(res.get._1)
       }
 
     CodecUtils.sortIndexAndDataOutput(indexesAndData)
