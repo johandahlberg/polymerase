@@ -192,13 +192,17 @@ trait ErlichCodecConfig {
   val dataLength = 128
   val multiplicationFactor = 3
   // TODO Look at this, something is fishy here...
-  val errorCorrectionBytes = 3
+  val errorCorrectionBytes = 16
   val fountainCodec = new FountainsCodes(
     packageMultiplicationFactor = multiplicationFactor
   )
+  // Add 12 bytes here, since that is how many bytes are added
+  // by the fountain encoder in its encoding step.
+  val rsPackageLength =
+    Package.totalPackageByteLength(dataLength) + 12
   val rsCodec =
     new ReedSolomonPackageCodec(
-      packageLength = dataLength,
+      packageLength = rsPackageLength,
       errorCorrectionBytes = errorCorrectionBytes
     )
 }
@@ -247,10 +251,12 @@ object PolymeraseErlichDecode extends App with ErlichCodecConfig {
       Package.fromRawBytes(pck)
     }
 
-  val okPackages = rsCodec.encodePackages(dnaDecodedPackages)
+  val okPackages = rsCodec.decodePackages(dnaDecodedPackages)
 
   val (decodedPackages, nbrOfPackagesDecoded) =
     fountainCodec.decode(okPackages)
+
+  System.err.println(s"Decoded $nbrOfPackagesDecoded packages.")
 
   decodedPackages
     .take(nbrOfPackagesDecoded)

@@ -43,6 +43,21 @@ package object polymerase {
       )
     }
 
+    def fromUnsignedBytes(
+        inputIndex: Int,
+        inputTotalNumberOfBlocks: Int,
+        inputBlockLength: Int,
+        inputData: Array[UnsignedByte]
+    ): Package = {
+      Package(
+        inputIndex = inputIndex,
+        inputTotalNumberOfBlocks = inputTotalNumberOfBlocks,
+        inputBlockLength = inputBlockLength,
+        dataLength = inputData.length,
+        inputData = inputData
+      )
+    }
+
     def fromRawBytes(
         inputData: Array[UnsignedByte]
     ): Package = {
@@ -57,11 +72,21 @@ package object polymerase {
       )
     }
 
-    val intByteLength = 4
+    private val intByteLength = 4
     private val numberOfBlocksOfSet = 0 * intByteLength
     private val indexOffset = 1 * intByteLength
     private val lengthOffset = 2 * intByteLength
     private val dataOffsett = 3 * intByteLength
+
+    def totalPackageByteLength(dataLengthInBytes: Int): Int =
+      Package
+        .fromBytes(
+          inputIndex = 0,
+          inputBlockLength = 0,
+          inputTotalNumberOfBlocks = 0,
+          inputData = Array.fill(dataLengthInBytes)(0)
+        )
+        .byteLength
 
     def index(bytes: Array[UnsignedByte]) =
       CodecUtils.decodeIntFromBytes(
@@ -94,6 +119,7 @@ package object polymerase {
   ) extends Ordered[Package] {
 
     // TODO Don't know if the we actually need to keep the errorCorrectionBits separate
+    // Probably not, so I'll most likely remove this later.
 
     val bytes: Array[UnsignedByte] =
       CodecUtils

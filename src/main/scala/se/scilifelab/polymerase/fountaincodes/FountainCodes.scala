@@ -87,9 +87,9 @@ class FountainsCodes(
 
     val nbrOfBlocks = data.length
     val nbrOfPackages = (nbrOfBlocks * packageMultiplicationFactor).toInt
-    //System.err.println(
-    //  s"Encoded $nbrOfBlocks blocks to $nbrOfPackages packages."
-    //)
+
+    System.err.println(s"Had $nbrOfBlocks blocks.")
+    System.err.println(s"Made $nbrOfPackages packages.")
 
     val degrees = getDegrees(nbrOfBlocks)
 
@@ -103,13 +103,21 @@ class FountainsCodes(
           .map(index => data(index))
           .map(_.bytes)
           .reduce((x, y) => xOrByteArrays(x, y))
-      val pck = Package(
+
+      val pck = Package.fromUnsignedBytes(
         inputIndex = i,
         inputTotalNumberOfBlocks = nbrOfBlocks,
         inputBlockLength = symbolData.length,
-        dataLength = symbolData.length,
         inputData = symbolData
       )
+      // TODO
+      //val pck = Package(
+      //  inputIndex = i,
+      //  inputTotalNumberOfBlocks = nbrOfBlocks,
+      //  inputBlockLength = symbolData.length,
+      //  dataLength = symbolData.length,
+      //  inputData = symbolData
+      //)
       pck
     }
 

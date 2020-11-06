@@ -28,7 +28,7 @@ case class ReedSolomonPackageCodec(
   // applications of this it will also cost you to synth those extra four bases,
   // but for now I will leave this alone.
 
-  val totalPackageLength = packageLength + errorCorrectionBytes
+  private val totalPackageLength = packageLength + errorCorrectionBytes + 1
   private val messageLength = packageLength + 1
 
   private val rsEncoder =
@@ -103,7 +103,7 @@ case class ReedSolomonCoder(
   require(n < 256, s"n must be smaller than 256. n was: $n")
   require(n > 0 || k > 0, "n and k must be positive")
   require(n <= gf2Charac, s"n must be at most $gf2Charac")
-  require(!(k > n), "n must be greater than message length k")
+  require(!(k > n), s"n must be greater than message length k. n=$n k=$k")
 
   val field = GaloisField(generator = generator, prim = prim, gf2CExp = cExp)
 
@@ -150,7 +150,8 @@ case class ReedSolomonCoder(
     } else {
       require(
         message.length <= k,
-        s"Message length is $k. Message was: ${message.length}. The message must be shorter than k."
+        s"Message length is $k. Message was: ${message.length}. The message must be shorter than k." +
+          s"Message was: ${message.toSeq}"
       )
 
       val m = Polynomial.fromFiniteField(field) { message }

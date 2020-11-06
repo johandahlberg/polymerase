@@ -30,4 +30,14 @@ class PackageSpec extends AnyFlatSpec {
     pck.index shouldBe 0
     pck.data.map(_.intValue) should be(Array(1, 2))
   }
+
+  it should "calculate the correct length of the package" in {
+    val pck = Package.fromBytes(
+      0,
+      1,
+      inputBlockLength = 5,
+      inputData = Array(1.toByte, 2.toByte)
+    )
+    pck.bytes.length should be(Package.totalPackageByteLength(5))
+  }
 }
