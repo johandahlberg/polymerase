@@ -88,9 +88,6 @@ class FountainsCodes(
     val nbrOfBlocks = data.length
     val nbrOfPackages = (nbrOfBlocks * packageMultiplicationFactor).toInt
 
-    System.err.println(s"Had $nbrOfBlocks blocks.")
-    System.err.println(s"Made $nbrOfPackages packages.")
-
     val degrees = getDegrees(nbrOfBlocks)
 
     for { i <- Iterator.range(0, nbrOfPackages) } yield {
@@ -158,8 +155,6 @@ class FountainsCodes(
     val degrees = getDegrees(nbrOfBlocks)
 
     for { (pck, i) <- packages.zipWithIndex } yield {
-      //System.err.println(s"Working on package nbr $i")
-      //System.err.println(s"Package: $pck")
 
       val neighbors =
         generateIndexPositions(
@@ -296,7 +291,6 @@ class FountainsCodes(
 
     val (dataIterator, countIterator) = data.duplicate
     val nbrOfBlocksGuess = guessNumberOfBlocks(countIterator)
-    //System.err.println(s"Guess there were $nbrOfBlocksGuess blocks.")
     // TODO Later, figure out how to do this in on the fly. For now pick up all the symbols
     val symbols = recoverGraph(dataIterator, nbrOfBlocksGuess).toSeq
 

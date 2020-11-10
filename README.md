@@ -43,6 +43,8 @@ There are a number of diffrent executables available in the bin dir. They all do
 - `polymerase-encode/polymerase-decode`: Encode and decode digital data to DNA without any error correction
 - `polymerase-rs-encode/polymerase-rs-decode`: Encode and decode data to DNA with [Reed-Solomon error correction](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction)
 - `polymerase-fountain-encode/polymerase-fountain-decode`: Encode and decode data to DNA with using [LT-codes](https://en.wikipedia.org/wiki/Luby_transform_code) for erasure coding
+- `polymerase-erlich-encode/polymerase-erlich-decode`: Encode and decode data using the scheme outlined by
+  Erlich and Zielinski (2017), combining RS- and fountain-codes.
 - `polymerase-drop-reads`: Utility which randomly drops reads (for testing erasure coding)
 - `polymerase-simulate-errors`: Utility for adding base-swap errors (for testing error detection/correction)
 
@@ -53,7 +55,7 @@ contributing to the project, this can be a good place to start looking.
 
 - Harmonize the interfaces for all codecs to use `Package` as input/output.
 - Look into implementing DNA Fountain strategy from Erlich and Zielinski (2017), including combining, RS-encoding and,
-  filtering created reads for e.g. homopolymers
+  filtering created reads for e.g. homopolymers. Right now this is missing read filtering.
 - Write integration tests for the CLI classes.
 
 # An incomplete list of relevant references data storage in DNA
