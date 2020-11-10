@@ -244,27 +244,12 @@ case class ReedSolomonCoder(
       val e = Polynomial(eList.reverse)
       val c = rp - e
 
-      // TODO Include possiblity of failure in type signature
-      //require(
-      //  c.length <= r.length,
-      //  s"Failed decoding? c.length: ${c.length} < r.length: ${r.length}\n" +
-      //    s"Input was: ${r.mkString("[", ",", "]")} and c was: $c"
-      //)
-      // TODO Don't know of this, or the above is better
-      //val correctedC = if (c.length > message.length) {
-      //  rp
-      //} else {
-      //  c
-      //}
-
       if (c.length > message.length) {
-        return Failure(new Exception("Failed state!"))
+        return Failure(new AssertionError("Failed to decode message"))
       }
 
-      val correctedC = c
-
-      val ret = correctedC.cooefficients.dropRight(n - k).map(_.i)
-      val ecc = correctedC.cooefficients.takeRight(n - k).map(_.i)
+      val ret = c.cooefficients.dropRight(n - k).map(_.i)
+      val ecc = c.cooefficients.takeRight(n - k).map(_.i)
 
       // TODO Clean this up
       if (noStrip) {
