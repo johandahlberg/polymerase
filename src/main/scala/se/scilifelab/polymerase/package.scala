@@ -114,12 +114,8 @@ package object polymerase {
       private val inputBlockLength: Int,
       private val inputTotalNumberOfBlocks: Int,
       private val dataLength: Int,
-      private val inputData: Array[UnsignedByte],
-      private val inputErrorCorrectionBytes: Array[UnsignedByte] = Array.empty
+      private val inputData: Array[UnsignedByte]
   ) extends Ordered[Package] {
-
-    // TODO Don't know if the we actually need to keep the errorCorrectionBits separate
-    // Probably not, so I'll most likely remove this later.
 
     val bytes: Array[UnsignedByte] =
       CodecUtils
@@ -127,8 +123,7 @@ package object polymerase {
         .map(UnsignedByte(_)) ++
         CodecUtils.encodeIntAsBytes(inputIndex).map(UnsignedByte(_)) ++
         CodecUtils.encodeIntAsBytes(dataLength).map(UnsignedByte(_)) ++
-        inputData.padTo(inputBlockLength, UnsignedByte(0)) ++
-        inputErrorCorrectionBytes
+        inputData.padTo(inputBlockLength, UnsignedByte(0))
 
     lazy val index = Package.index(bytes)
     lazy val length = Package.length(bytes)
@@ -141,11 +136,10 @@ package object polymerase {
     }
 
     def data = bytes.drop(Package.dataOffsett).take(length)
-    def errorCorrectionBytes = bytes.drop(Package.dataOffsett).drop(length)
 
     override def toString(): String = {
       s"Package(totalNumberOfBlocks=$totalNumberOfBlocks, index=$index, length=$length, " +
-        s"data=${data.map(_.intValue).toSeq}, errorCorrectionBytes=${errorCorrectionBytes.map(_.intValue).toSeq})"
+        s"data=${data.map(_.intValue).toSeq})"
     }
 
     def compare(that: Package): Int = this.index.compare(that.index)
