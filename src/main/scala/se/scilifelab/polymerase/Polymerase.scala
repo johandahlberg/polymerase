@@ -258,8 +258,6 @@ object PolymeraseErlichDecode extends App with ErlichCodecConfig {
   val (decodedPackages, nbrOfPackagesDecoded) =
     fountainCodec.decode(okPackages)
 
-  System.err.println(s"Decoded $nbrOfPackagesDecoded packages.")
-
   decodedPackages
     .take(nbrOfPackagesDecoded)
     .foreach(pck => output.write(pck.data.map(_.underlyingByte)))
