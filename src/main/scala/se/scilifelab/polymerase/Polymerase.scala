@@ -194,7 +194,7 @@ trait ErlichCodecConfig {
   // TODO Look at this, something is fishy here...
   // We need to add way to many error correction bytes to get the
   // messages to decode successfully.
-  val errorCorrectionBytes = 16
+  val errorCorrectionBytes = 8
   val fountainCodec = new FountainsCodes(
     packageMultiplicationFactor = multiplicationFactor
   )

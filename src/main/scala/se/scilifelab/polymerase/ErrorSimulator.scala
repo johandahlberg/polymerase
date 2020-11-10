@@ -14,7 +14,7 @@ object ErrorSimulator {
 
   def addErrors(
       input: Iterator[Nucleotide],
-      probOfError: Double = 0.006
+      probOfError: Double = 0.001
   ): Iterator[Nucleotide] = {
     val res =
       for { nuc <- input.toSeq } yield {
