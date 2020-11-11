@@ -5,11 +5,11 @@ Part of the algorithm(s) implemented here are covered by [US patent 16/032,946](
 # Polymerase
 
 I have been following the the rise of [DNA as a storage medium for digital data](https://en.wikipedia.org/wiki/DNA_digital_data_storage) with great interest. DNA is interesting as a storage medium since not only is it a very
-dense way of storing data, but it is also relatively stable and easy to copy. These properties make it an intersting
+dense way of storing data, but it is also relatively stable and easy to copy. These properties make it a good
 candidate for long term storage of data.
 
 This idea behind this repo has been to experiment with DNA storage codecs, and try to separate the different
-components from each other so that new encoding schemas can easily be constructed by combining different components.
+components from each other so that new encoding schemas can easily be constructed by combining them.
 In addition to this I have aimed to re-implement codec strategies described in various scientific publications.
 
 The focus of the code is on readability and clear separation of concerns rather than on performance.
@@ -28,7 +28,7 @@ sbt universal:packageBin
 You will now find a zip file under: `target/universal`. If you unzip this file you will find the relevant
 run scripts under `/bin` in that directory.
 
-The different polymerase executable variants, all read data from `stdin`, and can be run for example like this.
+The different polymerase executable variants, all read data from `stdin`, and and write to `stdout` can be run for example like this.
 
 ```
 cat [my super cool file] | polymerase-encode | polymerase-decode > [old file looking like new]
@@ -56,7 +56,8 @@ contributing to the project, this can be a good place to start looking.
 - Harmonize the interfaces for all codecs to use `Package` as input/output.
 - Look into implementing DNA Fountain strategy from Erlich and Zielinski (2017), including combining, RS-encoding and,
   filtering created reads for e.g. homopolymers. Right now this is missing read filtering.
-- Write integration tests for the CLI classes.
+- Write integration tests for all the CLI classes.
+- Make the different encoders/decoders configurable via the CLI.
 
 # An incomplete list of relevant references data storage in DNA
 
